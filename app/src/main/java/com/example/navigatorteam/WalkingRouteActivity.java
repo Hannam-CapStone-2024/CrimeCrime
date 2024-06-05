@@ -34,6 +34,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.navigatorteam.Manager.SafeReturnService;
 import com.example.navigatorteam.Support.LocationInfo;
 import com.example.navigatorteam.databinding.ActivityMainBinding;
 import com.skt.tmap.TMapData;
@@ -89,6 +90,7 @@ public class WalkingRouteActivity extends AppCompatActivity implements LocationL
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
 
+    private SafeReturnService safeReturnService;
     boolean flag = false;
     @Override
     public void onLocationChanged(Location location) {
