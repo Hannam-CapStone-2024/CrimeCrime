@@ -1,6 +1,7 @@
 package com.example.navigatorteam.Manager;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.example.navigatorteam.Class.Spot;
 import com.example.navigatorteam.Support.CsvLoader;
@@ -25,6 +26,7 @@ public class SpotController {
         List<List<String>> csvLoader = CsvLoader.readCSV(context, "DB/SpotDB.csv");
         spots.removeAll(spots);
         for (List<String> arr : csvLoader) {
+            Log.d("init: ", "initss: " + arr);
             Spot spot = parseSpot(arr.toArray(new String[0]));
             spots.add(spot);
         }

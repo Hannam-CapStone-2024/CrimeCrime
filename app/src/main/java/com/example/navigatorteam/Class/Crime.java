@@ -12,42 +12,51 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.example.navigatorteam.Manager.CriminalLoader;
+import com.example.navigatorteam.Manager.RegionManager;
 import com.example.navigatorteam.Support.Average;
 import com.example.navigatorteam.Support.CrimeType;
 
 public class Crime
 {
-    public static String TotalState(TimeRange time, WeekType weekType) throws IOException {
+    public static String TotalState(TimeRange time, WeekType weekType, String location) throws IOException {
         // 각 범죄 유형에 대한 평균 범죄 상태를 저장할 맵
         Map<CrimeType, String> crimeStateMap = new HashMap<>();
 
         // 모든 범죄 유형에 대해 EachState 메서드를 호출하여 평균 범죄 상태를 계산하고 맵에 저장
         for (CrimeType crimeType : CrimeType.values()) {
-            String crimeState = EachState(crimeType, time, weekType);
+            String crimeState = EachState(crimeType, time, weekType, location);
             Log.v("Taasdad :", crimeStateMap.toString());
             crimeStateMap.put(crimeType, crimeState);
         }
 
         // 모든 범죄 유형에 대한 평균 범죄 상태를 종합하여 최종 범죄 상태 계산
         double totalAvgCount = 0;
+        int cnt = 0;
         for (String state : crimeStateMap.values()) {
-            if (state.equals("좋음")) {
-                totalAvgCount += 0.33;
+            if (state.equals("매우좋음")) {
+                totalAvgCount += 0.5;
+            } else if (state.equals("좋음")) {
+                totalAvgCount += 0.8;
             } else if (state.equals("보통")) {
-                totalAvgCount += 0.66;
-            } else if (state.equals("나쁨")) {
                 totalAvgCount += 1.0;
             }
+            else if (state.equals("나쁨")) {
+                totalAvgCount += 1.2;
+            }
+            else if (state.equals("매우나쁨")) {
+                totalAvgCount += 1.5;
+            }
+            cnt++;
         }
 
         // 전체 평균 범죄 상태 계산
-        double avgCrimeState = totalAvgCount / 6;
+        double avgCrimeState = totalAvgCount / cnt;
         System.out.println("avgCrimeState: " + avgCrimeState);
         // 평균 범죄 상태에 따른 최종 범죄 상태 반환
         return calculateCrimeState(avgCrimeState);
     }
 
-    public static String EachState(CrimeType crimeType, TimeRange time, WeekType weekType) throws IOException {
+    public static String EachState(CrimeType crimeType, TimeRange time, WeekType weekType, String location) throws IOException {
         Map<CrimeType, Integer> crimeSumMap;
         Log.v("Taasdad :", "Caox1");
         try {
@@ -64,24 +73,24 @@ public class Crime
         }
 
         // 해당 범죄 유형의 평균 값을 가져옴
-        double avgCount = (double) CriminalLoader.GetCount(crimeType, time) / CriminalLoader.Avg().get(crimeType);
-        System.out.println("CriminalLoader.GetCount(crimeType, time): " + CriminalLoader.GetCount(crimeType, time));
-        System.out.println("CriminalLoader.Avg().get(crimeType): " + CriminalLoader.Avg().get(crimeType));
-        System.out.println("avgCount: " + avgCount);
-        System.out.println("-----------");
+        double avgCount = (double) CriminalLoader.GetCount(crimeType, time) * RegionManager.GetValue(location) / CriminalLoader.Avg().get(crimeType);
+        Log.d("EachState: ", "GetCount: " + CriminalLoader.GetCount(crimeType, time) );
+        Log.d("EachState: ", "RegionManager: " + RegionManager.GetValue(location));
+        Log.d("EachState: ", "Avg(): " +  CriminalLoader.Avg().get(crimeType));
+        Log.d("EachState: ", "avgCount: " + avgCount);
         // 시간대에 따른 범죄 발생을 확인하여 범죄 상태를 반환
         return calculateCrimeState(avgCount * new Average().get(crimeType,weekType));
     }
 
 
     private static String  calculateCrimeState(double avgCount) {
-        if (avgCount <= 0.7)
+        if (avgCount <= 0.5)
             return "매우좋음";
-        else if (avgCount <= 0.9)
+        else if (avgCount <= 0.8)
             return "좋음";
-        else if (avgCount <= 1.1)
+        else if (avgCount <= 1.2)
             return "보통";
-        else if (avgCount <= 1.3)
+        else if (avgCount <= 1.5)
             return "나쁨";
         else
             return "매우나쁨";

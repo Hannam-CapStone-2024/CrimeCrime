@@ -118,26 +118,26 @@ public class ActivityManager {
         this. cond_4 = cond_4;
     }
 
-    public void setCrimeStatus() throws IOException {
+    public void setCrimeStatus(String location) throws IOException {
         TimeRange currentTimeRange = getCurrentTimeRange();
         WeekType currentWeekType = getCurrentWeekType();
 
         if (theftStatusTextView != null) {
-            theftStatusTextView.setText(Crime.EachState(CrimeType.Violent, currentTimeRange, currentWeekType));
+            theftStatusTextView.setText(Crime.EachState(CrimeType.Violent, currentTimeRange, currentWeekType, location));
         }
         if (robberyStatusTextView != null) {
-            robberyStatusTextView.setText(Crime.EachState(CrimeType.Theft, currentTimeRange, currentWeekType));
+            robberyStatusTextView.setText(Crime.EachState(CrimeType.Theft, currentTimeRange, currentWeekType, location));
         }
         if (assaultStatusTextView != null) {
-            assaultStatusTextView.setText(Crime.EachState(CrimeType.Violence, currentTimeRange, currentWeekType));
+            assaultStatusTextView.setText(Crime.EachState(CrimeType.Violence, currentTimeRange, currentWeekType, location));
         }
     }
 
-    public void setExplainText() throws IOException {
+    public void setExplainText(String location) throws IOException {
         TimeRange currentTimeRange = getCurrentTimeRange();
         WeekType currentWeekType = getCurrentWeekType();
         //String totalState = "좋음";
-        String totalState = Crime.TotalState(currentTimeRange, currentWeekType);
+        String totalState = Crime.TotalState(currentTimeRange, currentWeekType, location);
         int color = setStatusColor(totalState);
         explainTextView.setText(totalState);
         totalTextView.setText(Crime.crimteExplain(totalState));
@@ -154,20 +154,20 @@ public class ActivityManager {
         date_3.setText(WeekType.getCurrentWeekType());
         date_4.setText(WeekType.getCurrentWeekType());
 
-        setImageView(time_1, Crime.TotalState(TimeRange.EARLY_MORNING_4_7, currentWeekType));
-        setImageView(time_2, Crime.TotalState(TimeRange.MORNING_7_12, currentWeekType));
-        setImageView(time_3, Crime.TotalState(TimeRange.AFTERNOON_12_18, currentWeekType));
-        setImageView(time_4, Crime.TotalState(TimeRange.NIGHT_20_24, currentWeekType));
+        setImageView(time_1, Crime.TotalState(TimeRange.EARLY_MORNING_4_7, currentWeekType, location));
+        setImageView(time_2, Crime.TotalState(TimeRange.MORNING_7_12, currentWeekType, location));
+        setImageView(time_3, Crime.TotalState(TimeRange.AFTERNOON_12_18, currentWeekType, location));
+        setImageView(time_4, Crime.TotalState(TimeRange.NIGHT_20_24, currentWeekType, location));
 
-        cond_1.setText(Crime.TotalState(TimeRange.EARLY_MORNING_4_7, currentWeekType));
-        cond_2.setText(Crime.TotalState(TimeRange.MORNING_7_12, currentWeekType));
-        cond_3.setText(Crime.TotalState(TimeRange.AFTERNOON_12_18, currentWeekType));
-        cond_4.setText(Crime.TotalState(TimeRange.NIGHT_20_24, currentWeekType));
+        cond_1.setText(Crime.TotalState(TimeRange.EARLY_MORNING_4_7, currentWeekType, location));
+        cond_2.setText(Crime.TotalState(TimeRange.MORNING_7_12, currentWeekType, location));
+        cond_3.setText(Crime.TotalState(TimeRange.AFTERNOON_12_18, currentWeekType, location));
+        cond_4.setText(Crime.TotalState(TimeRange.NIGHT_20_24, currentWeekType, location));
     }
 
-    public void setDateTimeAndLocation() {
+    public void setDateTimeAndLocation(String location) {
         if (locationTextView != null) {
-            //locationTextView.setText("대덕구 오정동");
+            locationTextView.setText(location);
         }
         if (dateTimeTextView != null) {
             // 현재 시간에 10분 더하기

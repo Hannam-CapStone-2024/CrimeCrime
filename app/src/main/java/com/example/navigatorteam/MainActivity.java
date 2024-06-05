@@ -21,6 +21,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.navigatorteam.Manager.CriminalLoader;
+import com.example.navigatorteam.Manager.ReverseGeocodingTask;
 import com.example.navigatorteam.Support.ActivityManager;
 import com.skt.tmap.TMapData;
 import com.skt.tmap.TMapView;
@@ -30,7 +31,12 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,6 +44,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
     private Button emergencyCallButton;
@@ -50,12 +57,15 @@ public class MainActivity extends AppCompatActivity {
     private TextView newsContent3;
     private static final List<String> KEYWORDS = Arrays.asList("강도", "살인", "칼부림", "묻지마"); // 검색할 키워드 목록
     private String link1, link2, link3; // 링크 저장 변수
+    private TMapView tMapView;
     @Override
     @SuppressLint("MissingInflatedId")
     protected void onCreate(Bundle savedInstanceState) {
         Instance = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home); // 레이아웃 설정
+        tMapView = new TMapView(this);
+        tMapView.setSKTMapApiKey("pRNUlsEpce4d3mB0MUabnMDhHbLmdtlPrUYZI3i0");
 
         // Button 초기화와 클릭 리스너 설정은 onCreate 메서드 내에서 해야 합니다.
         Button homeButton = findViewById(R.id.Homebutton);
@@ -68,7 +78,11 @@ public class MainActivity extends AppCompatActivity {
         });
 
         Init();
-        SetImage();
+        try {
+            getLastKnownLocationAndConvertToAddress();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         SetArticle();
 
     }
@@ -162,48 +176,61 @@ public class MainActivity extends AppCompatActivity {
         new NewsCrawlerTask().execute(crimeCategorySid1, crimeCategorySid2, startDate, endDate);
     }
 
-    public void SetImage() {
-        // 현재 시간과 날짜 설정
-        ActivityManager.getInstance().setDateTimeAndLocation();
 
-        // 범죄 상태 설정
-        try {
-            ActivityManager.getInstance().setCrimeStatus();
-            ActivityManager.getInstance().setExplainText();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        getLastKnownLocationAndConvertToAddress();
 
-    }
-
-    private void getLastKnownLocationAndConvertToAddress() {
+    private void getLastKnownLocationAndConvertToAddress() throws IOException {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        double latitude;
+        double longitude;
         try {
             Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (location == null) {
-                location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+            if(location == null)
+            {
+                latitude = 36.35618653374754;
+                longitude = 127.41913010772244;
             }
-            if (location != null) {
-                double latitude = location.getLatitude();
-                double longitude = location.getLongitude();
-                Toast.makeText(this, "현재 위치 - 위도: " + latitude + ", 경도: " + longitude, Toast.LENGTH_LONG).show();
-                convertLocationToAddress(latitude, longitude);
-            } else {
-                Toast.makeText(this, "현재 위치를 가져올 수 없습니다.", Toast.LENGTH_LONG).show();
+            else
+            {
+                latitude = location.getLatitude();
+                longitude = location.getLongitude();
             }
+            convertLocationToAddress(latitude, longitude);
         } catch (SecurityException e) {
-            e.printStackTrace();
+            ActivityManager.getInstance().setDateTimeAndLocation("");
+            ActivityManager.getInstance().setCrimeStatus("");
+            ActivityManager.getInstance().setExplainText("");
         }
     }
 
     private void convertLocationToAddress(double latitude, double longitude) {
-        TMapData tMapData = new TMapData();
+        try {
+            new ReverseGeocodingTask(latitude,longitude).execute();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        tMapData.convertGpsToAddress(latitude, longitude, s -> runOnUiThread(() -> {
-            main_message.setText(s);
-            Log.d("TAG", "convertLocationToAddress: " + s);
-        }));
+        /*
+        TMapData tMapData = new TMapData();
+        Log.d("TAG", "convertLocationToAddress: " + tMapData.convertGpsToAddress(36.35041, 127.38455));
+        tMapData.convertGpsToAddress(latitude, longitude);
+        tMapData.convertGpsToAddress(latitude, longitude, new TMapData.OnConvertGPSToAddressListener() {
+                    @Override
+                    public void onConverGPSToAddress(String s) {
+                        Log.d("TAG", "convertLocationToAddress: " + latitude + ", " + longitude);
+                        main_message.setText(s);
+                        try {
+                            ActivityManager.getInstance().setDateTimeAndLocation(s);
+                            ActivityManager.getInstance().setCrimeStatus(s);
+                            ActivityManager.getInstance().setExplainText(s);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        Log.d("TAG", "convertLocationToAddress: " + s);
+                    }
+                }
+                );
+
+         */
     }
 
     public void makeEmergencyCall() {
