@@ -56,8 +56,6 @@ public class MainActivity extends AppCompatActivity {
         Instance = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home); // 레이아웃 설정
-        tMapView = new TMapView(this);
-        tMapView.setSKTMapApiKey("pRNUlsEpce4d3mB0MUabnMDhHbLmdtlPrUYZI3i0");
 
         // Button 초기화와 클릭 리스너 설정은 onCreate 메서드 내에서 해야 합니다.
         Button homeButton = findViewById(R.id.Homebutton);
@@ -68,31 +66,15 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
+        Init();
         SetImage();
+        SetArticle();
 
-        newsTitle1 = findViewById(R.id.newsTitle1);
-        newsContent1 = findViewById(R.id.newsContent1);
-        newsTitle2 = findViewById(R.id.newsTitle2);
-        newsContent2 = findViewById(R.id.newsContent2);
-        newsTitle3 = findViewById(R.id.newsTitle3);
-        newsContent3 = findViewById(R.id.newsContent3);
-
-        int crimeCategorySid1 = 102; // 예시로 사회 카테고리
-        int crimeCategorySid2 = 249; // 범죄 관련 카테고리
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-        Calendar calendar = Calendar.getInstance();
-        String startDate = sdf.format(calendar.getTime()); // 현재 날짜
-
-        calendar.add(Calendar.DATE, -30); // 현재 날짜에서 30일 전
-        String endDate = sdf.format(calendar.getTime());
-
-        new NewsCrawlerTask().execute(crimeCategorySid1, crimeCategorySid2, startDate, endDate);
     }
 
-    private TMapView tMapView;
-
-    public void SetImage() {
+    private void Init()
+    {
         CriminalLoader loader = new CriminalLoader(this);
 
         // TextView 초기화
@@ -149,6 +131,38 @@ public class MainActivity extends AppCompatActivity {
                 time_4,
                 cond_4
         );
+        emergencyCallButton = findViewById(R.id.emergencyCallButton);
+        emergencyCallButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                makeEmergencyCall();
+            }
+        });
+    }
+
+    private void SetArticle()
+    {
+        newsTitle1 = findViewById(R.id.newsTitle1);
+        newsContent1 = findViewById(R.id.newsContent1);
+        newsTitle2 = findViewById(R.id.newsTitle2);
+        newsContent2 = findViewById(R.id.newsContent2);
+        newsTitle3 = findViewById(R.id.newsTitle3);
+        newsContent3 = findViewById(R.id.newsContent3);
+
+        int crimeCategorySid1 = 102; // 예시로 사회 카테고리
+        int crimeCategorySid2 = 249; // 범죄 관련 카테고리
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        Calendar calendar = Calendar.getInstance();
+        String startDate = sdf.format(calendar.getTime()); // 현재 날짜
+
+        calendar.add(Calendar.DATE, -30); // 현재 날짜에서 30일 전
+        String endDate = sdf.format(calendar.getTime());
+
+        new NewsCrawlerTask().execute(crimeCategorySid1, crimeCategorySid2, startDate, endDate);
+    }
+
+    public void SetImage() {
         // 현재 시간과 날짜 설정
         ActivityManager.getInstance().setDateTimeAndLocation();
 
@@ -161,13 +175,6 @@ public class MainActivity extends AppCompatActivity {
         }
         getLastKnownLocationAndConvertToAddress();
 
-        emergencyCallButton = findViewById(R.id.emergencyCallButton);
-        emergencyCallButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                makeEmergencyCall();
-            }
-        });
     }
 
     private void getLastKnownLocationAndConvertToAddress() {
