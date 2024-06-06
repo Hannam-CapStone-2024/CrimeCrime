@@ -61,10 +61,10 @@ public class SafeReturnService extends Service {
     /*
      int estimatedTimeInMinutes = 30; // 예시: 예상 도착 시간 30분
                 String phoneNumber = "01027199447"; // 예시: 수신자 전화번호
-                Intent intent = new Intent(MainActivity.this, SafeReturnService.class);
-                intent.putExtra("estimatedTimeInMinutes", estimatedTimeInMinutes);
-                intent.putExtra("phoneNumber", phoneNumber);
-                startService(intent);
+//                Intent intent = new Intent(MainActivity.this, SafeReturnService.class);
+//                intent.putExtra("estimatedTimeInMinutes", estimatedTimeInMinutes);
+//                intent.putExtra("phoneNumber", phoneNumber);
+//                startService(intent);
      */
     public void startSafeReturn(int estimatedTimeInMinutes, String phoneNumber) {
         this.estimatedTimeInMinutes = estimatedTimeInMinutes;

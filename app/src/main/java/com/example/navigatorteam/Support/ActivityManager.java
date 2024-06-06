@@ -172,9 +172,8 @@ public class ActivityManager {
         if (dateTimeTextView != null) {
             // 현재 시간에 10분 더하기
             Calendar calendar = Calendar.getInstance();
-            calendar.add(Calendar.MINUTE, 10);
             // 날짜 포맷팅
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm a", Locale.getDefault());
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm a", Locale.getDefault());
             String currentDateTime = dateFormat.format(calendar.getTime());
 
             // 포맷팅된 날짜를 TextView에 설정

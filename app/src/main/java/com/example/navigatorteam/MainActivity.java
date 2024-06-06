@@ -145,13 +145,6 @@ public class MainActivity extends AppCompatActivity {
                 time_4,
                 cond_4
         );
-        emergencyCallButton = findViewById(R.id.emergencyCallButton);
-        emergencyCallButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                makeEmergencyCall();
-            }
-        });
     }
 
     private void SetArticle()
@@ -233,11 +226,6 @@ public class MainActivity extends AppCompatActivity {
          */
     }
 
-    public void makeEmergencyCall() {
-        Intent callIntent = new Intent(Intent.ACTION_DIAL);
-        callIntent.setData(Uri.parse("tel:01027199447"));
-        startActivity(callIntent);
-    }
 
     TextView main_message;
 

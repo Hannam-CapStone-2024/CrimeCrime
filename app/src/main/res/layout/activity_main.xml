@@ -105,7 +105,6 @@
                 android:src="@drawable/zoom_in_btn_select"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
-
             <ImageView
                 android:id="@+id/zoomOutImage"
                 android:layout_width="wrap_content"
@@ -113,11 +112,10 @@
                 android:src="@drawable/zoom_out_btn_select"
                 app:layout_constraintStart_toStartOf="@id/zoomInImage"
                 app:layout_constraintTop_toBottomOf="@id/zoomInImage" />
-
             <TextView
                 android:id="@+id/zoomLevelText"
-                android:layout_width="41dp"
-                android:layout_height="29dp"
+                android:layout_width="50dp"
+                android:layout_height="30dp"
                 android:layout_marginTop="10dp"
                 android:layout_marginEnd="10dp"
                 android:background="@android:color/white"
@@ -126,6 +124,15 @@
                 android:textSize="15dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+            <ImageView
+                android:id="@+id/locationImage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/location_btn_selector"
+                app:layout_constraintEnd_toEndOf="@id/zoomLevelText"
+                app:layout_constraintTop_toBottomOf="@id/zoomLevelText" />
+
 
             <!-- Marker 설명 레이아웃 -->
             <LinearLayout

@@ -43,7 +43,7 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.jackson.databind)
     implementation(libs.ui.geometry)
-    implementation(files("libs\\jsoup-1.17.2.jar"))
+    implementation(files("libs/jsoup-1.17.2.jar"))
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
