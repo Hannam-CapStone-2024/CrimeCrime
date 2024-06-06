@@ -18,6 +18,7 @@ import java.util.Map;
 
 import com.example.navigatorteam.Class.CrimeRecord;
 import com.example.navigatorteam.Class.TimeRange;
+import com.example.navigatorteam.MainActivity;
 import com.example.navigatorteam.Support.CrimeType;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -25,17 +26,21 @@ import com.google.gson.JsonParser;
 
 public class CriminalLoader {
 
+    static List<CrimeRecord> m_crimeRecords;
+
+    public static void Init() throws IOException {
+        m_crimeRecords = LoadData();
+    }
     public static Map<CrimeType, Integer> avgCount = new HashMap<>();
 
 
-    public static List<CrimeRecord> Data() throws IOException {
+    public static List<CrimeRecord> LoadData() throws IOException {
         return convertJsonToCrimeRecords(readFileAsString("CrimeData.json"));
     }
 
     public static Map<CrimeType, CrimeRecord> Sum() throws IOException
     {
-        List<CrimeRecord> dataArray = Data();
-        Log.v("Caox File is :" , dataArray.toString());
+        List<CrimeRecord> dataArray = m_crimeRecords;
         Map<CrimeType, CrimeRecord> crimeRecordMap = new HashMap<>();
         for (int i = 0; i < dataArray.size(); i++) {
             CrimeRecord it = dataArray.get(i);
@@ -59,9 +64,8 @@ public class CriminalLoader {
 
     public static Map<CrimeType, Integer> Avg() throws IOException
     {
-        List<CrimeRecord> dataArray = Data();
+        List<CrimeRecord> dataArray = m_crimeRecords;
         Map<CrimeType, Integer> crimeSumMap = new HashMap<>();
-        Log.v("Caox File is :" , dataArray.toString());
         for (CrimeRecord it : dataArray) {
             int total = (it.night_20_24 + it.earlyMorning_4_7 + it.midnight_0_4 +
                     it.morning_7_12 + it.afternoon_12_18 + it.evening_18_20) / 6;
@@ -72,16 +76,13 @@ public class CriminalLoader {
 
     public static int GetCount(CrimeType crimeType, TimeRange timeRange) {
         List<CrimeRecord> crimeRecords;
-        try {
-            crimeRecords = Data(); // 데이터를 읽어옴
-        } catch (IOException e) {
-            e.printStackTrace();
-            return 0;
-        }
+
+            crimeRecords = m_crimeRecords; // 데이터를 읽어옴
+
 
         // 주어진 범죄 유형과 시간대에 해당하는 범죄 발생 횟수를 계산
         int count = 0;
-        for (CrimeRecord record : crimeRecords) {
+        for (CrimeRecord record : m_crimeRecords) {
             if (record.category == crimeType) {
                 switch (timeRange) {
                     case MIDNIGHT_0_4:
@@ -109,13 +110,9 @@ public class CriminalLoader {
         return count;
     }
 
-    private static Context context;
 
-    public CriminalLoader(Context context) {
-        this.context = context;
-    }
     public static String readFileAsString(String filePath) throws IOException {
-        AssetManager assetManager = context.getAssets();
+        AssetManager assetManager = MainActivity.Instance.getAssets();
         InputStream inputStream = assetManager.open(filePath);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
         StringBuilder stringBuilder = new StringBuilder();

@@ -37,7 +37,15 @@
                 android:textStyle="bold"
                 android:paddingTop="15dp"
                 android:paddingBottom="15dp" />
-
+            <Button
+                android:id="@+id/emergencyCallButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="긴급 전화"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/button_emergency_background"
+                android:layout_gravity="start"
+                android:onClick="makeEmergencyCall"/>
             <!-- 구분선 추가 -->
             <View
                 android:layout_width="match_parent"
@@ -263,7 +271,7 @@
                     android:id="@+id/time_1"
                     android:layout_width="200dp"
                     android:layout_height="wrap_content"
-                    android:text="00:00~06:00"
+                    android:text="00:00~04:00"
                     android:textColor="#000000"
                     android:textSize="14sp" />
 
@@ -294,7 +302,7 @@
                     android:id="@+id/time_2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="06:00~12:00"
+                    android:text="04:00~07:00"
                     android:textSize="14sp"
                     android:textColor="#000000"/>
 
@@ -325,7 +333,7 @@
                     android:id="@+id/time_3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="12:00~18:00"
+                    android:text="07:00~12:00"
                     android:textSize="14sp"
                     android:textColor="#000000"/>
 
@@ -356,7 +364,7 @@
                     android:id="@+id/time_4"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="18:00~24:00"
+                    android:text="12:00~18:00"
                     android:textSize="14sp"
                     android:textColor="#000000"/>
 
@@ -369,6 +377,66 @@
                     android:textSize="14sp" />
                 <ImageView
                     android:id="@+id/image_4"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_violence"/>
+            </TableRow>
+            <TableRow>
+                <TextView
+                    android:id="@+id/date_5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="월요일"
+                    android:textSize="14sp"
+                    android:textColor="#000000"/>
+
+                <TextView
+                    android:id="@+id/time_5"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:text="18:00~20:00"
+                    android:textColor="#000000"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/cond_5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="보통"
+                    android:textColor="#000000"
+                    android:textSize="14sp" />
+                <ImageView
+                    android:id="@+id/image_5"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_violence"/>
+            </TableRow>
+            <TableRow>
+                <TextView
+                    android:id="@+id/date_6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="월요일"
+                    android:textSize="14sp"
+                    android:textColor="#000000"/>
+
+                <TextView
+                    android:id="@+id/time_6"
+                    android:layout_width="200dp"
+                    android:layout_height="wrap_content"
+                    android:text="20:00~24:00"
+                    android:textColor="#000000"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/cond_6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="보통"
+                    android:textColor="#000000"
+                    android:textSize="14sp" />
+                <ImageView
+                    android:id="@+id/image_6"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:src="@drawable/ic_violence"/>

@@ -1,6 +1,7 @@
 package com.example.navigatorteam.Support;
 
 import android.graphics.Color;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TableLayout;
@@ -52,8 +53,15 @@ public class ActivityManager {
     private TextView date_4;
     private ImageView time_4;
     private TextView cond_4;
+
+    private TextView date_5;
+    private ImageView time_5;
+    private TextView cond_5;
+
+    private TextView date_6;
+    private ImageView time_6;
+    private TextView cond_6;
     ImageView mainIcon;
-    private ActivityManager() {}
 
     // 싱글턴 인스턴스를 반환하는 메서드
     public static ActivityManager getInstance() {
@@ -86,7 +94,13 @@ public class ActivityManager {
                            TextView cond_3,
                            TextView date_4,
                            ImageView time_4,
-                           TextView cond_4
+                           TextView cond_4,
+                             TextView date_5,
+                           ImageView time_5,
+                           TextView cond_5,
+                             TextView date_6,
+                           ImageView time_6,
+                           TextView cond_6
     ) {
         this.theftStatusTextView = theftStatus;
         this.robberyStatusTextView = robberyStatus;
@@ -116,6 +130,14 @@ public class ActivityManager {
         this. date_4 = date_4;
         this. time_4 = time_4;
         this. cond_4 = cond_4;
+
+        this. date_5 = date_5;
+        this. time_5 = time_5;
+        this. cond_5 = cond_5;
+
+        this. date_6 = date_6;
+        this. time_6 = time_6;
+        this. cond_6 = cond_6;
     }
 
     public void setCrimeStatus(String location) throws IOException {
@@ -153,16 +175,23 @@ public class ActivityManager {
         date_2.setText(WeekType.getCurrentWeekType());
         date_3.setText(WeekType.getCurrentWeekType());
         date_4.setText(WeekType.getCurrentWeekType());
+        date_5.setText(WeekType.getCurrentWeekType());
+        date_6.setText(WeekType.getCurrentWeekType());
 
-        setImageView(time_1, Crime.TotalState(TimeRange.EARLY_MORNING_4_7, currentWeekType, location));
-        setImageView(time_2, Crime.TotalState(TimeRange.MORNING_7_12, currentWeekType, location));
-        setImageView(time_3, Crime.TotalState(TimeRange.AFTERNOON_12_18, currentWeekType, location));
-        setImageView(time_4, Crime.TotalState(TimeRange.NIGHT_20_24, currentWeekType, location));
-
-        cond_1.setText(Crime.TotalState(TimeRange.EARLY_MORNING_4_7, currentWeekType, location));
-        cond_2.setText(Crime.TotalState(TimeRange.MORNING_7_12, currentWeekType, location));
-        cond_3.setText(Crime.TotalState(TimeRange.AFTERNOON_12_18, currentWeekType, location));
-        cond_4.setText(Crime.TotalState(TimeRange.NIGHT_20_24, currentWeekType, location));
+        setImageView(time_1, Crime.TotalState(TimeRange.MIDNIGHT_0_4, currentWeekType, location));
+        setImageView(time_2, Crime.TotalState(TimeRange.EARLY_MORNING_4_7, currentWeekType, location));
+        setImageView(time_3, Crime.TotalState(TimeRange.MORNING_7_12, currentWeekType, location));
+        setImageView(time_4, Crime.TotalState(TimeRange.AFTERNOON_12_18, currentWeekType, location));
+        setImageView(time_5, Crime.TotalState(TimeRange.EVENING_18_20, currentWeekType, location));
+        setImageView(time_6, Crime.TotalState(TimeRange.NIGHT_20_24, currentWeekType, location));
+        Log.d("", "setExplainText: -------------------");
+        cond_1.setText(Crime.TotalState(TimeRange.MIDNIGHT_0_4, currentWeekType, location));
+        cond_2.setText(Crime.TotalState(TimeRange.EARLY_MORNING_4_7, currentWeekType, location));
+        cond_3.setText(Crime.TotalState(TimeRange.MORNING_7_12, currentWeekType, location));
+        cond_4.setText(Crime.TotalState(TimeRange.AFTERNOON_12_18, currentWeekType, location));
+        cond_5.setText(Crime.TotalState(TimeRange.EVENING_18_20, currentWeekType, location));
+        cond_6.setText(Crime.TotalState(TimeRange.NIGHT_20_24, currentWeekType, location));
+        Log.d("", "setExplainText: -------------------");
     }
 
     public void setDateTimeAndLocation(String location) {

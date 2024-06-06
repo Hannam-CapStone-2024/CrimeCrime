@@ -21,8 +21,11 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.navigatorteam.Manager.CriminalLoader;
+import com.example.navigatorteam.Manager.RegionManager;
 import com.example.navigatorteam.Manager.ReverseGeocodingTask;
+import com.example.navigatorteam.Manager.SpotController;
 import com.example.navigatorteam.Support.ActivityManager;
+import com.example.navigatorteam.Support.Average;
 import com.skt.tmap.TMapData;
 import com.skt.tmap.TMapView;
 
@@ -55,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
     private TextView newsContent2;
     private TextView newsTitle3;
     private TextView newsContent3;
-    private static final List<String> KEYWORDS = Arrays.asList("강도", "살인", "칼부림", "묻지마"); // 검색할 키워드 목록
+    private static final List<String> KEYWORDS = Arrays.asList("강도", "살인", "칼부림", "묻지마","폭행","살해","범죄"); // 검색할 키워드 목록
     private String link1, link2, link3; // 링크 저장 변수
     private TMapView tMapView;
     @Override
@@ -77,7 +80,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Init();
+        try {
+            Init();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         try {
             getLastKnownLocationAndConvertToAddress();
         } catch (IOException e) {
@@ -87,10 +94,12 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void Init()
-    {
-        CriminalLoader loader = new CriminalLoader(this);
-
+    private void Init() throws IOException {
+        Log.d("Cap", "Init All");
+        CriminalLoader.Init();
+        RegionManager.Init();
+        Average.Init();
+        SpotController.init(this);
         // TextView 초기화
         TextView theftStatusTextView = findViewById(R.id.theftStatus);
         TextView robberyStatusTextView = findViewById(R.id.robberyStatus);
@@ -104,19 +113,32 @@ public class MainActivity extends AppCompatActivity {
         TableLayout subTableRow = findViewById(R.id.subTableLow);
         TableRow subTableLowTop = findViewById(R.id.subTableLowTop);
         ImageView mainIcon = findViewById(R.id.main_icon);
-        TextView cond_4 = findViewById(R.id.cond_4);
+
 
         TextView date_1 = findViewById(R.id.date_1);
         ImageView time_1 = findViewById(R.id.image_1);
         TextView cond_1 = findViewById(R.id.cond_1);
+
         TextView date_2 = findViewById(R.id.date_2);
         ImageView time_2 = findViewById(R.id.image_2);
         TextView cond_2 = findViewById(R.id.cond_2);
+
         TextView date_3 = findViewById(R.id.date_3);
         ImageView time_3 = findViewById(R.id.image_3);
         TextView cond_3 = findViewById(R.id.cond_3);
+
         TextView date_4 = findViewById(R.id.date_4);
         ImageView time_4 = findViewById(R.id.image_4);
+        TextView cond_4 = findViewById(R.id.cond_4);
+
+        TextView date_5 = findViewById(R.id.date_5);
+        ImageView time_5 = findViewById(R.id.image_5);
+        TextView cond_5 = findViewById(R.id.cond_5);
+
+        TextView date_6 = findViewById(R.id.date_6);
+        ImageView time_6 = findViewById(R.id.image_6);
+        TextView cond_6 = findViewById(R.id.cond_6);
+        emergencyCallButton = findViewById(R.id.emergencyCallButton);
 
         // ActivityManager 초기화
         ActivityManager.getInstance().initialize(
@@ -143,10 +165,28 @@ public class MainActivity extends AppCompatActivity {
                 cond_3,
                 date_4,
                 time_4,
-                cond_4
+                cond_4,
+                date_5,
+                time_5,
+                cond_5,
+                date_6,
+                time_6,
+                cond_6
         );
+
+        emergencyCallButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                makeEmergencyCall();
+            }
+        });
     }
 
+    public void makeEmergencyCall() {
+        Intent callIntent = new Intent(Intent.ACTION_DIAL);
+        callIntent.setData(Uri.parse("tel:01027199447"));
+        startActivity(callIntent);
+    }
     private void SetArticle()
     {
         newsTitle1 = findViewById(R.id.newsTitle1);
@@ -196,8 +236,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void convertLocationToAddress(double latitude, double longitude) {
+        Log.d("SSI", "convertLocationToAddress:" +  latitude + "," + longitude);
         try {
-            new ReverseGeocodingTask(latitude,longitude).execute();
+            new ReverseGeocodingTask(36.35618653374754,127.41913010772244).execute();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -246,18 +287,28 @@ public class MainActivity extends AppCompatActivity {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
-
+            boolean isDuplicate = false;
             while (articles.size() < 3 && !calendar.getTime().before(parseDate(endDate))) {
+                isDuplicate = false;
                 String currentDate = sdf.format(calendar.getTime());
-                for (int page = 1; page <= 10; page++) {
+                for (int page = 1; page <= 100 && !isDuplicate; page++) {
                     String url = String.format("https://news.naver.com/main/list.naver?mode=LS2D&sid2=%d&sid1=%d&mid=sec&date=%s&page=%d", sid2, sid1, currentDate, page);
-                    Log.d("NewsCrawlerTask", "Fetching URL: " + url);
                     List<String> articleLinks = getNewsLinks(url);
                     for (String articleUrl : articleLinks) {
                         Article article = fetchArticleDetails(articleUrl);
-                        if (article != null && containsKeywords(article)) {
-                            articles.add(article);
-                            if (articles.size() >= 3) break;
+                        if (article != null && containsKeywords(article))
+                        {
+                            for (Article existingArticle : articles) {
+                                if (existingArticle.title.equals(article.title)) {
+                                    isDuplicate = true;
+                                    break;
+                                }
+                            }
+
+                            if (!isDuplicate) {
+                                articles.add(article);
+                                if (articles.size() >= 3) break;
+                            }
                         }
                     }
                     if (articles.size() >= 3) break;
@@ -307,7 +358,6 @@ public class MainActivity extends AppCompatActivity {
                     Element linkElement = element.selectFirst("a"); // 첫 번째 a 태그만 선택합니다.
                     if (linkElement != null) {
                         String link = linkElement.attr("href");
-                        Log.d("ArticleLink", "Link: " + link);
                         articleLinks.add(link);
                     }
                 }

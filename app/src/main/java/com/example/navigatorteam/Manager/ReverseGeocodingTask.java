@@ -55,6 +55,7 @@ public class ReverseGeocodingTask extends AsyncTask<Void, Void, String> {
 
     @Override
     protected void onPostExecute(String result) {
+        Log.d("SSi", "result: " + result);
         // 결과를 UI에 반영
         result = extractAddress(result);
         if (result != null) {
@@ -73,10 +74,11 @@ public class ReverseGeocodingTask extends AsyncTask<Void, Void, String> {
 
     public static String extractAddress(String jsonResponse) {
         try {
+            Log.d("SSi", "fullAddress: " + jsonResponse);
             JSONObject jsonObject = new JSONObject(jsonResponse);
             JSONObject addressInfo = jsonObject.getJSONObject("addressInfo");
             String fullAddress = addressInfo.getString("fullAddress");
-
+            Log.d("SSi", "fullAddress: " + fullAddress);
             // "서울특별시 중구 소공동" 부분을 추출
             String[] addressParts = fullAddress.split(",");
             if (addressParts.length > 0) {

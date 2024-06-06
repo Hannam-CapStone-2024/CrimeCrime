@@ -150,6 +150,7 @@ public class Main extends AppCompatActivity {
                 initAutoComplete();
                 centerPositon();
                 showAll();
+                setTrackingMode(true);
             }
 
         });
@@ -206,7 +207,6 @@ public class Main extends AppCompatActivity {
         });
 
         // SpotController 초기화
-        SpotController.getInstance().init(this);
 
         Button buttonShowAll = findViewById(R.id.buttonShowAll);
         Button buttonShowFacilities = findViewById(R.id.buttonShowFacilities);
@@ -526,13 +526,12 @@ public class Main extends AppCompatActivity {
     private void showAll() {
         hideAll();
         addMarkersAndCircles(CrimeZoneController.GetInstance().GetCrimeZones());
-        SpotController.getInstance().init(this);
-        addSpots(SpotController.getInstance().getSpots());
+        addSpots(SpotController.getSpots());
     }
 
     private void showFacilities() {
         hideAll();
-        addSpots(SpotController.getInstance().getSpots());
+        addSpots(SpotController.getSpots());
     }
 
     private void showCrimes() {
@@ -554,7 +553,7 @@ public class Main extends AppCompatActivity {
                 tMapView.mapZoomOut();
             } else if (v.equals(locationImage)){
                 locationImage.setSelected(!locationImage.isSelected());
-                setTrackingMode(locationImage.isSelected());
+                //setTrackingMode(locationImage.isSelected());
             }
         }
     };

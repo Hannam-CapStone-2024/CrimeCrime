@@ -11,11 +11,12 @@ import java.util.List;
 import java.util.Map;
 
 public class Average {
-    Map<CrimeType, Map<WeekType, Double>> crimeData = new HashMap<>();
 
-    public Average() throws IOException {
-        List<List<String>> crimeDataArray = CsvLoader.readCSV(MainActivity.Instance,"DB/CrimeDays.csv");
-        Log.d("AAAAACDE", "Average: " + crimeDataArray.toString());
+    static Map<CrimeType, Map<WeekType, Double>> crimeData = new HashMap<>();
+
+    public static void Init()
+    {
+        crimeDataArray = CsvLoader.readCSV(MainActivity.Instance,"DB/CrimeDays.csv");
         for (List<String> row : crimeDataArray) {
             CrimeType crimeType = CrimeType.fromValue(row.get(0));
             Map<WeekType, Double> dayData = new HashMap<>();
@@ -26,7 +27,9 @@ public class Average {
         }
     }
 
-    public double get(CrimeType crimeType, WeekType day) {
+    static List<List<String>> crimeDataArray;
+
+    public static double get(CrimeType crimeType, WeekType day) {
         if (!crimeData.containsKey(crimeType)) {
             return 1; // Invalid crime type
         }

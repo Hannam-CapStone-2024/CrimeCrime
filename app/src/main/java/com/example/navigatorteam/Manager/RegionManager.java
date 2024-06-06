@@ -8,10 +8,12 @@ import com.example.navigatorteam.Support.CsvLoader;
 import java.util.List;
 
 public class RegionManager {
+    static List<List<String>> Datas;
+    public static void Init()
+    {
+        Datas = CsvLoader.readCSV(MainActivity.Instance, "DB/Region.csv");
+    }
     public static double GetValue(String str) {
-
-        Log.d("GetValue: ", "Find: " + Find(str) );
-        Log.d("GetValue: ", " Avg(): " +  Avg());
         return Find(str) / Avg();
     }
 
@@ -19,16 +21,13 @@ public class RegionManager {
     // 특정 문자열을 검색하여 해당 값을 반환하는 메서드
     public static double Find(String str) {
         // CSV 파일에서 데이터를 읽어옴
-        List<List<String>> csvLoader = CsvLoader.readCSV(MainActivity.Instance, "DB/Region.csv");
-
         if (str == null || str.isEmpty()) {
             Log.e("CsvDataFinder", "검색 문자열이 null이거나 비어있습니다.");
             return Avg();
         }
 
         // CSV 파일의 각 행을 순회하면서 검색
-        for (List<String> row : csvLoader) {
-            Log.d("CsvDataFinder", "Find: " + row.get(0));
+        for (List<String> row : Datas) {
             if (row != null && row.size() >= 2 && str.contains(row.get(0))) {
                 try {
                     // 문자열에 해당하는 값을 double로 변환하여 반환

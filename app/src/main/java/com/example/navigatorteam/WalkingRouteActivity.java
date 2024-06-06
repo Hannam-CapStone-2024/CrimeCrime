@@ -177,6 +177,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         return earthRadius * c;
     }
+
     private void showRouteDescription(int index) {
         if (index < routePoints.size()) {
             TMapPoint point = routePoints.get(index);
@@ -267,7 +268,6 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         });
 
         // SpotController 초기화
-        SpotController.getInstance().init(this);
 
         Button buttonShowAll = findViewById(R.id.buttonShowAll);
         Button buttonShowFacilities = findViewById(R.id.buttonShowFacilities);
@@ -603,6 +603,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                                     TMapPOIItem poi = poiItem.get(i);
                                     if (isStartPoint) {
                                         startPoint = poi.getPOIPoint();
+                                        Log.d("poi.getPOIName()", "poi.getPOIName(): " + poi.getPOIName());
                                         autoCompleteEditStart.setText(poi.getPOIName());
                                         startname = poi.getPOIName();
                                         autoCompleteListViewStart.setVisibility(View.GONE);
@@ -1047,13 +1048,12 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
     private void showAll() {
         hideAll();
         addMarkersAndCircles(CrimeZoneController.GetInstance().GetCrimeZones());
-        SpotController.getInstance().init(this);
-        addSpots(SpotController.getInstance().getSpots());
+        addSpots(SpotController.getSpots());
     }
 
     private void showFacilities() {
         hideAll();
-        addSpots(SpotController.getInstance().getSpots());
+        addSpots(SpotController.getSpots());
     }
 
     private void showCrimes() {
