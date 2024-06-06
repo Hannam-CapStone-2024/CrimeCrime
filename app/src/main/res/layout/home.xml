@@ -381,7 +381,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="50dp">
 
             <!-- 뉴스 카드 1 -->
             <androidx.cardview.widget.CardView
