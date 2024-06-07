@@ -3,6 +3,7 @@ package com.example.navigatorteam;
 import static com.example.navigatorteam.Support.CrimeType.getIconResourceByCrimeType;
 
 import android.Manifest;
+import android.content.pm.ActivityInfo;
 import android.graphics.PointF;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -112,7 +113,7 @@ public class Main extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         // TMapView 초기화
         tMapView = new TMapView(this);
         binding.tmapViewContainer.addView(tMapView);
@@ -553,7 +554,7 @@ public class Main extends AppCompatActivity {
                 tMapView.mapZoomOut();
             } else if (v.equals(locationImage)){
                 locationImage.setSelected(!locationImage.isSelected());
-                //setTrackingMode(locationImage.isSelected());
+                setTrackingMode(locationImage.isSelected());
             }
         }
     };

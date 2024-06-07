@@ -3,6 +3,7 @@ package com.example.navigatorteam;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.location.Location;
 import android.location.LocationManager;
 import android.net.Uri;
@@ -67,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
         Instance = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home); // 레이아웃 설정
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         tMapView = new TMapView(this);
         tMapView.setSKTMapApiKey("pRNUlsEpce4d3mB0MUabnMDhHbLmdtlPrUYZI3i0");
 

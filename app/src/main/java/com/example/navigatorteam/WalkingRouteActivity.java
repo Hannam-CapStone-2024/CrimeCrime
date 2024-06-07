@@ -1,7 +1,9 @@
 package com.example.navigatorteam;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.Manifest;
@@ -26,6 +28,7 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.Layout;
 import android.text.TextWatcher;
@@ -82,7 +85,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity implements LocationListener {
+public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity implements LocationListener  {
 
     private TMapPolyLine currentPolyline;
     private List<TMapPoint> routePoints;
@@ -127,10 +130,33 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
     private static final float MIN_DISTANCE_CHANGE_FOR_UPDATES = 1.0f;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
+    private boolean navFlag = false;
     private boolean flag = false;
     @Override
     public void onLocationChanged(Location location) {
-        // 위치가 변경될 때 호출됩니다.
+        Log.d("onLocationChanged", "Location changed");
+        runOnUiThread(() -> {
+            try {
+                Alert(location);
+                OnMove();
+            } catch (Exception e) {
+                Log.e("onLocationChanged", "Error in location update", e);
+            }
+        });
+    }
+    private double calculateDistance(TMapPoint start, TMapPoint end) {
+        double earthRadius = 6371000; // meters
+        double dLat = Math.toRadians(end.getLatitude() - start.getLatitude());
+        double dLng = Math.toRadians(end.getLongitude() - start.getLongitude());
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(Math.toRadians(start.getLatitude())) * Math.cos(Math.toRadians(end.getLatitude())) *
+                        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return earthRadius * c;
+    }
+
+    void Alert(Location location)
+    {
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
         // 위치 정보를 사용할 수 있습니다. 여기서는 토스트 메시지로 출력합니다.
@@ -146,37 +172,8 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             stopService(intent);
             safeReturnService.onArrival();
         }
-
-        // 현재 위치와 경로 지점 사이의 거리 계산
-        if (routePoints != null && !routePoints.isEmpty()) {
-            TMapPoint currentLocation = new TMapPoint(latitude, longitude);
-            TMapPoint targetPoint = routePoints.get(currentRouteIndex);
-
-            double distance = calculateDistance(currentLocation, targetPoint);
-            if (distance < 50) { // 현재 위치와 다음 경로 지점 사이의 거리가 50m 이하인 경우
-                currentRouteIndex++;
-                if (currentRouteIndex < routePoints.size()) {
-                    // 다음 경로 안내 표시
-                    showRouteDescription(currentRouteIndex);
-                } else {
-                    // 경로 완료
-                    currentRouteIndex = 0;
-                    routePoints.clear();
-                    routeDescriptionLayout.setVisibility(View.GONE);
-                }
-            }
-        }
     }
-    private double calculateDistance(TMapPoint start, TMapPoint end) {
-        double earthRadius = 6371000; // meters
-        double dLat = Math.toRadians(end.getLatitude() - start.getLatitude());
-        double dLng = Math.toRadians(end.getLongitude() - start.getLongitude());
-        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-                Math.cos(Math.toRadians(start.getLatitude())) * Math.cos(Math.toRadians(end.getLatitude())) *
-                        Math.sin(dLng / 2) * Math.sin(dLng / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return earthRadius * c;
-    }
+
 
     private void showRouteDescription(int index) {
         if (index < routePoints.size()) {
@@ -241,7 +238,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(R.layout.activity_walking_route);
-
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         // 위치 권한 확인 및 요청
         checkLocationPermission();
 
@@ -256,8 +253,8 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             public void onPressDown(ArrayList<TMapMarkerItem> arrayList, ArrayList<TMapPOIItem> arrayList1, TMapPoint tMapPoint, PointF pointF) {
 
                 if (tMapView.isTrackingMode()) {
-                    setTrackingMode(false);
-                    locationImage.setSelected(false);
+                    //setTrackingMode(false);
+                    //locationImage.setSelected(false);
                 }
             }
 
@@ -365,6 +362,8 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         WalikngRoutebutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                navFlag = true;
+
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -382,8 +381,10 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                     public void onFindPathDataAllType(Document doc) {
                         // 경로 안내가 완료되었음을 표시하고 길찾기 버튼을 활성화
                         pathDocument = doc;
+                        navFlag = true;
                     }
                 });
+
             }
         });
         ReButton.setOnClickListener(new View.OnClickListener() {
@@ -430,7 +431,6 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         });
         routePoints = new ArrayList<>();
         currentRouteIndex = 0;
-
     }
     private void hideKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -475,7 +475,6 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         }
     }
     private void setTrackingMode(boolean isTracking) {
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             boolean isGranted = true;
             String[] permissionArr = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};
@@ -490,6 +489,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             }
 
             if (isGranted) {
+                tMapView.setZoomLevel(19);
                 setTracking(isTracking);
             } else {
                 requestPermissions(checkPer.toArray(new String[0]), 100);
@@ -497,7 +497,6 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
 
         }
     }
-
     private void initAutoComplete() {
         autoCompleteLayout.setVisibility(View.VISIBLE);
         autoCompleteEditStart.addTextChangedListener(new TextWatcher() {
@@ -643,7 +642,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             @Override
             public void onFindPathDataAllType(Document doc) {
                 tMapView.removeTMapPath(); // 기존 경로 제거
-
+                tMapView.removeAllTMapPolyLine();
                 TMapPolyLine polyline = new TMapPolyLine();
                 polyline.setID(type.name());
                 polyline.setLineWidth(10);
@@ -784,7 +783,6 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                 startPoint = new TMapPoint(location.getLatitude(), location.getLongitude());
                 NowreverseGeocoading(startPoint);
                 autoCompleteEditStart.setText(nowAddress);
-                // 출발지 마커를 추가합니다.
                setTracking(true);
             } else {
                 Toast.makeText(this, "현재 위치를 가져올 수 없습니다.", Toast.LENGTH_SHORT).show();
@@ -806,8 +804,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                 // 현재 위치를 출발지로 설정합니다.
                 nowposition = new TMapPoint(location.getLatitude(), location.getLongitude());
                 // 출발지 마커를 추가합니다.
-                tMapView.setZoomLevel(15);
-                tMapView.setCenterPoint(nowposition.getLatitude(), nowposition.getLongitude());
+                //tMapView.setCenterPoint(nowposition.getLatitude(), nowposition.getLongitude());
             } else {
                 Toast.makeText(this, "현재 위치를 가져올 수 없습니다.", Toast.LENGTH_SHORT).show();
             }
@@ -825,7 +822,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                 nowposition = new TMapPoint(location.getLatitude(), location.getLongitude());
                 // 출발지 마커를 추가합니다.
                 tMapView.setCenterPoint(nowposition.getLatitude(), nowposition.getLongitude());
-                tMapView.setZoomLevel(19);
+                tMapView.setZoomLevel(15);
             } else {
                 Toast.makeText(this, "현재 위치를 가져올 수 없습니다.", Toast.LENGTH_SHORT).show();
             }
@@ -973,6 +970,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         public void onLocationChange(Location location) {
             if (location != null) {
                 tMapView.setLocationPoint(location.getLatitude(), location.getLongitude());
+                OnMove();
                 // 위치 정보를 사용할 수 있습니다. 여기서는 토스트 메시지로 출력합니다.
             }
         }
@@ -1084,7 +1082,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                 if (pathDocument != null) {
                     tMapView.removeAllTMapMarkerItem();
                     showAll();
-                    displayPathDetails(pathDocument);
+                    NewDisplayPathDetails(pathDocument);
                     centerPositon();
                     addMarker2(endPoint, "도착지", "(도착)" + endname, endAddress);
                     routeInfo.setVisibility(View.GONE);
@@ -1136,7 +1134,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                         tMapView.removeAllTMapMarkerItem();
                         showAll();
                         displayPathDetails(pathDocument);
-                        centerPositon();
+                        //centerPositon();
                         addMarker2(endPoint, "도착지", "(도착)" + endname, endAddress);
                         routeInfo.setVisibility(View.GONE);
                         routeDescriptionLayout.setVisibility(View.VISIBLE);
@@ -1152,4 +1150,142 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         dialog.show();
         Log.d("SafeReturnDialog", "Dialog shown.");
     }
+    //----새로운 네비 코드
+    private void NewDisplayPathDetails(Document doc) {
+        runOnUiThread(() -> {
+            if (doc != null) {
+                NodeList list = doc.getElementsByTagName("Document");
+                Element item2 = (Element) list.item(0);
+                String totalDistance = getContentFromNode(item2, "tmap:totalDistance");
+                String totalTime = getContentFromNode(item2, "tmap:totalTime");
+                NodeList placemarkList = doc.getElementsByTagName("Placemark");
+
+                int totalSec = Integer.parseInt(totalTime);
+                int day = totalSec / (60 * 60 * 24);
+                int hour = (totalSec - day * 60 * 60 * 24) / (60 * 60);
+                int minute = (totalSec - day * 60 * 60 * 24 - hour * 3600) / 60;
+                String t;
+                if (hour > 0) {
+                    t = hour + "시간 " + minute + "분";
+                } else {
+                    t = minute + "분 ";
+                }
+                double km = Double.parseDouble(totalDistance) / 1000;
+                double roundedKm = Math.round(km * 10.0) / 10.0;
+                routedescriptionTextView.setText(getContentFromNode((Element) placemarkList.item(0), "description")
+                                + "\n"
+                        + "남은 거리 :" + roundedKm + "km"
+                                + "\n"
+                        + "남은 시간" + t
+                        );
+            }
+        });
+    }
+
+    int count = 0;
+    long lastPathUpdateTime = 0;
+    void OnMove() {
+        Log.d("OnMove", "OnMove called");
+        count++;
+
+        if (!navFlag) return;
+
+        setNowposition();
+        NewfindPathAllType(TMapData.TMapPathType.PEDESTRIAN_PATH, new TMapData.OnFindPathDataAllTypeListener() {
+            @Override
+            public void onFindPathDataAllType(Document doc) {
+                Log.d("NewfindPathAllType", "onFindPathDataAllType called");
+                if (doc != null) {
+                    NewDisplayPathDetails(doc);
+                    hideKeyboard();
+                } else {
+                    Log.d("NewfindPathAllType", "Document is null");
+                }
+            }
+        });
+    }
+
+    private void NewfindPathAllType(final TMapData.TMapPathType type, final TMapData.OnFindPathDataAllTypeListener listener) {
+        if (startPoint == null || endPoint == null) {
+            runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "StartPoint or EndPoint is null", Toast.LENGTH_LONG).show());
+            return;
+        }
+
+        TMapData data = new TMapData();
+        data.findPathDataAllType(type, nowposition, endPoint, new TMapData.OnFindPathDataAllTypeListener() {
+            @Override
+            public void onFindPathDataAllType(Document doc) {
+                runOnUiThread(() -> {
+                    if (tMapView != null) {
+                        tMapView.removeTMapPath(); // 기존 경로 제거
+                        tMapView.removeAllTMapPolyLine();
+                    }
+                    TMapPolyLine polyline = new TMapPolyLine();
+                    polyline.setID(type.name());
+                    polyline.setLineWidth(10);
+                    polyline.setLineColor(Color.RED);
+                    polyline.setLineAlpha(255);
+
+                    if (doc != null) {
+                        NodeList list = doc.getElementsByTagName("Document");
+                        if (list != null && list.getLength() > 0) {
+                            Element item2 = (Element) list.item(0);
+                            String totalDistance = getContentFromNode(item2, "tmap:totalDistance");
+                            String totalTime = getContentFromNode(item2, "tmap:totalTime");
+
+                            NodeList list2 = doc.getElementsByTagName("LineString");
+                            if (list2 != null) {
+                                for (int i = 0; i < list2.getLength(); i++) {
+                                    Element item = (Element) list2.item(i);
+                                    String str = getContentFromNode(item, "coordinates");
+                                    if (str == null) {
+                                        continue;
+                                    }
+
+                                    String[] str2 = str.split(" ");
+                                    for (String s : str2) {
+                                        try {
+                                            String[] str3 = s.split(",");
+                                            if (str3.length >= 2) { // Ensure there are at least two elements
+                                                TMapPoint point = new TMapPoint(Double.parseDouble(str3[1]), Double.parseDouble(str3[0]));
+                                                polyline.addLinePoint(point);
+                                                routePoints.add(point); // 경로 지점 추가
+                                            } else {
+                                            }
+                                        } catch (Exception e) {
+                                            runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "Error parsing coordinates: " + s, Toast.LENGTH_LONG).show());
+                                        }
+                                    }
+                                }
+
+                                if (tMapView != null) {
+                                    tMapView.setTMapPath(polyline);
+                                    currentPolyline = polyline;
+
+                                    TMapInfo info = tMapView.getDisplayTMapInfo(polyline.getLinePointList());
+
+                                    tMapView.setCenterPoint(info.getPoint().getLatitude(), info.getPoint().getLongitude());
+
+                                    // 첫 번째 경로 안내 표시
+                                    currentRouteIndex = 0;
+                                    showRouteDescription(currentRouteIndex);
+                                }
+
+                                // 새로 추가된 부분: 외부에서 전달된 리스너를 호출하여 처리 결과를 전달
+                                listener.onFindPathDataAllType(doc);
+                            } else {
+                                runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "LineString node list is empty or null", Toast.LENGTH_LONG).show());
+                            }
+                        } else {
+                            runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "Document node list is empty or null", Toast.LENGTH_LONG).show());
+                        }
+                    } else {
+                        runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "Document is null", Toast.LENGTH_LONG).show());
+                    }
+                });
+            }
+        });
+    }
+
+
 }
