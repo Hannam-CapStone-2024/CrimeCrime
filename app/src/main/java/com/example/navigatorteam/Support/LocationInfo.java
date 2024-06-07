@@ -1,5 +1,6 @@
 package com.example.navigatorteam.Support;
 
+import android.location.Location;
 import android.util.Log;
 
 import com.example.navigatorteam.Class.CrimeZone;
@@ -34,9 +35,21 @@ public class LocationInfo {
     }
 
     public static boolean isPointInsideCircle(double centerX, double centerY, double radius, double pointX, double pointY) {
-        double distance = Math.sqrt(Math.pow((centerX - pointX), 2) + Math.pow((centerY - pointY), 2));
+        // 중심 좌표
+        Location centerLocation = new Location("center");
+        centerLocation.setLatitude(centerY);
+        centerLocation.setLongitude(centerX);
+
+        // 점 좌표
+        Location pointLocation = new Location("point");
+        pointLocation.setLatitude(pointY);
+        pointLocation.setLongitude(pointX);
+
+        // 두 지점 간의 거리 계산 (미터 단위)
+        float distance = centerLocation.distanceTo(pointLocation);
         Log.d("TAG", "distance: " + distance);
-        Log.d("TAG", "distance-radius: " + radius);
+        Log.d("TAG", "radius: " + radius);
+        // 거리와 반지름 비교
         return distance <= radius;
     }
 }

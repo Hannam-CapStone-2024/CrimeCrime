@@ -27,6 +27,7 @@ import com.example.navigatorteam.Manager.ReverseGeocodingTask;
 import com.example.navigatorteam.Manager.SpotController;
 import com.example.navigatorteam.Support.ActivityManager;
 import com.example.navigatorteam.Support.Average;
+import com.example.navigatorteam.Support.LocationInfo;
 import com.skt.tmap.TMapData;
 import com.skt.tmap.TMapView;
 
@@ -93,7 +94,6 @@ public class MainActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
         SetArticle();
-
     }
 
     private void Init() throws IOException {

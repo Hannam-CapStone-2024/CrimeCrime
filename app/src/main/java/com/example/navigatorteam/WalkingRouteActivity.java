@@ -137,7 +137,6 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         Log.d("onLocationChanged", "Location changed");
         runOnUiThread(() -> {
             try {
-                Alert(location);
                 OnMove();
             } catch (Exception e) {
                 Log.e("onLocationChanged", "Error in location update", e);
@@ -160,12 +159,15 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
         // 위치 정보를 사용할 수 있습니다. 여기서는 토스트 메시지로 출력합니다.
-        if (LocationInfo.isDanger(longitude, latitude) && !flag) {
-            showAlert(WalkingRouteActivity.this, "알림", "위험 지역입니다 주의하세요!");
-            flag = true;
-        } else {
-            flag = false;
+        boolean isDanger = LocationInfo.isDanger(longitude, latitude);
+
+        if (isDanger != flag) {
+            if (isDanger) {
+                showAlert(WalkingRouteActivity.this, "알림", "위험 지역입니다 주의하세요!");
+            }
+            flag = isDanger;
         }
+
         TMapPoint loca = new TMapPoint(latitude, longitude);
         if (endPoint != null && loca.getLatitude() == endPoint.getLatitude() && loca.getLongitude() == endPoint.getLongitude()) {
             Intent intent = new Intent(WalkingRouteActivity.this, SafeReturnService.class);
@@ -362,8 +364,6 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         WalikngRoutebutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                navFlag = true;
-
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -396,6 +396,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                 routeInfo.setVisibility(View.GONE);
                 routeDescriptionLayout.setVisibility(View.GONE);
                 routeLayout.setVisibility(View.GONE);
+                navFlag = false;
             }
         });
         findRouteButton.setOnClickListener(new View.OnClickListener() { // 길찾기 버튼 눌렀을 때
@@ -410,6 +411,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             public void onClick(View v) {
                 Intent intent = new Intent(WalkingRouteActivity.this, MainActivity.class);
                 startActivity(intent);
+                navFlag = false;
             }
         });
         Button search_placeButton = findViewById(R.id.search_place);
@@ -418,6 +420,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             public void onClick(View v) {
                 Intent intent = new Intent(WalkingRouteActivity.this, Main.class);
                 startActivity(intent);
+                navFlag = false;
             }
         });
         Button currentLocationButton = findViewById(R.id.currentLocationButton); // 현재 위치 설정 버튼
@@ -793,7 +796,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         }
     }
 
-    private void setNowposition() {
+    private Location setNowposition() {
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         try {
             Location gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
@@ -806,12 +809,14 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                 nowposition = new TMapPoint(location.getLatitude(), location.getLongitude());
                 // 출발지 마커를 추가합니다.
                 //tMapView.setCenterPoint(nowposition.getLatitude(), nowposition.getLongitude());
+                return  location;
             } else {
                 Toast.makeText(this, "현재 위치를 가져올 수 없습니다.", Toast.LENGTH_SHORT).show();
             }
         } catch (SecurityException e) {
             e.printStackTrace();
         }
+        return null;
     }
     private void centerPositon(){
         LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -1088,9 +1093,9 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                     addMarker2(endPoint, "도착지", "(도착)" + endname, endAddress);
                     routeInfo.setVisibility(View.GONE);
                     routeDescriptionLayout.setVisibility(View.VISIBLE);
-
                 }
                 dialog.dismiss();
+                navFlag = true;
             }
         });
 
@@ -1099,6 +1104,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             public void onClick(View v) {
                 dialog.dismiss();
                 openSafeReturnDialog();
+                navFlag = true;
             }
         });
 
@@ -1202,14 +1208,20 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         // 마지막 실행 시간 업데이트
         lastPathUpdateTime = currentTime;
 
-        setNowposition();
         NewfindPathAllType(TMapData.TMapPathType.PEDESTRIAN_PATH, new TMapData.OnFindPathDataAllTypeListener() {
             @Override
             public void onFindPathDataAllType(Document doc) {
                 Log.d("NewfindPathAllType", "onFindPathDataAllType called");
                 if (doc != null) {
-                    NewDisplayPathDetails(doc);
+                    //---추가부
+                        tMapView.removeAllTMapMarkerItem();
+                        showAll();
+                        //centerPositon();
+                        NewDisplayPathDetails(doc);
+                        addMarker2(endPoint, "도착지", "(도착)" + endname, endAddress);
+                    //---추가부
                     hideKeyboard();
+                    //centerPositon();
                 } else {
                     Log.d("NewfindPathAllType", "Document is null");
                 }
@@ -1223,12 +1235,15 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "StartPoint or EndPoint is null", Toast.LENGTH_LONG).show());
             return;
         }
-        runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "Markers :" + tMapView.getAllMarkerItem2().toString() , Toast.LENGTH_LONG).show());
         TMapData data = new TMapData();
         data.findPathDataAllType(type, nowposition, endPoint, new TMapData.OnFindPathDataAllTypeListener() {
             @Override
             public void onFindPathDataAllType(Document doc) {
                 runOnUiThread(() -> {
+                    Location location = new Location("");
+                    location.setLatitude(nowposition.getLatitude());
+                    location.setLongitude(nowposition.getLongitude());
+                    Alert(location);
                     if (tMapView != null) {
                         tMapView.removeTMapPath(); // 기존 경로 제거
                         tMapView.removeAllTMapPolyLine();
@@ -1288,14 +1303,10 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                                 // 새로 추가된 부분: 외부에서 전달된 리스너를 호출하여 처리 결과를 전달
                                 listener.onFindPathDataAllType(doc);
                             } else {
-
-                                runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "LineString node list is empty or null", Toast.LENGTH_LONG).show());
                             }
                         } else {
-                            runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "Document node list is empty or null", Toast.LENGTH_LONG).show());
                         }
                     } else {
-                        runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "Document is null", Toast.LENGTH_LONG).show());
                     }
                 });
             }
