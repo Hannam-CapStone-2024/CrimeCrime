@@ -20,6 +20,12 @@
         android:layout_height="wrap_content"
         android:hint="연락을 남기고 싶은 분의 전화번호를 입력하세요."
         android:inputType="phone" />
+    <EditText
+        android:id="@+id/name_input"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="받는 분에게 어떤 이름으로 보내드릴까요?"
+        android:inputType="textPersonName" />
 
     <Button
         android:id="@+id/start_service_button"

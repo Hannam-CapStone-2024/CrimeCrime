@@ -17,19 +17,44 @@ public class ReverseLabelView extends Dialog {
     private TextView str4TextView;
     private Button HomePageButton;
     private Button CallButton;
-
-    public ReverseLabelView(Context context) {
+    private DestinationListener destinationListener;
+    public ReverseLabelView(Context context, boolean showRouteButton) {
         super(context);
         setContentView(R.layout.view_marker2);
-
         str1TextView = findViewById(R.id.marker2_text1);
         str2TextView = findViewById(R.id.marker2_text2);
         str3TextView = findViewById(R.id.marker2_text3);
         str4TextView = findViewById(R.id.marker2_text4);
         HomePageButton = findViewById(R.id.marker2_button);
         CallButton = findViewById(R.id.marker3_button);
+        Button routeButton = findViewById(R.id.route_button);
+        if (showRouteButton) {
+            routeButton.setVisibility(View.VISIBLE);
+            routeButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    dismiss(); // 다이얼로그 닫기
+                    if (destinationListener != null) {
+                        destinationListener.onDestinationSet();
+                    }
+                }
+            });
+        } else {
+            routeButton.setVisibility(View.GONE);
+        }
     }
 
+    // 다른 코드는 그대로 유지됩니다.
+
+    public void setDestinationListener(DestinationListener listener) {
+        this.destinationListener = listener;
+    }
+
+    // 다른 코드는 그대로 유지됩니다.
+
+    public interface DestinationListener {
+        void onDestinationSet();
+    }
     public void setText(String str1, String str2, String str3, String str4) {
         if (str1 != null && !str1.isEmpty()) {
             this.str1TextView.setText(str1);

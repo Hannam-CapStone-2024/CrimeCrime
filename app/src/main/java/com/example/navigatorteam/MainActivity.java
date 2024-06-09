@@ -27,6 +27,7 @@ import com.example.navigatorteam.Manager.ReverseGeocodingTask;
 import com.example.navigatorteam.Manager.SpotController;
 import com.example.navigatorteam.Support.ActivityManager;
 import com.example.navigatorteam.Support.Average;
+import com.example.navigatorteam.Support.LocationInfo;
 import com.skt.tmap.TMapData;
 import com.skt.tmap.TMapView;
 
@@ -93,7 +94,6 @@ public class MainActivity extends AppCompatActivity {
             throw new RuntimeException(e);
         }
         SetArticle();
-
     }
 
     private void Init() throws IOException {
@@ -140,7 +140,6 @@ public class MainActivity extends AppCompatActivity {
         TextView date_6 = findViewById(R.id.date_6);
         ImageView time_6 = findViewById(R.id.image_6);
         TextView cond_6 = findViewById(R.id.cond_6);
-        emergencyCallButton = findViewById(R.id.emergencyCallButton);
 
         // ActivityManager 초기화
         ActivityManager.getInstance().initialize(
@@ -176,12 +175,6 @@ public class MainActivity extends AppCompatActivity {
                 cond_6
         );
 
-        emergencyCallButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                makeEmergencyCall();
-            }
-        });
     }
 
     public void makeEmergencyCall() {

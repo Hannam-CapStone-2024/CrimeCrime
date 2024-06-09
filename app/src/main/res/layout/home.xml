@@ -8,547 +8,595 @@
     tools:context=".MainActivity">
 
     <ScrollView
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#FFD700"
-    tools:context=".MainActivity">
-
-    <LinearLayout
-        android:id="@+id/mainLayout"
+        android:id="@+id/scrollView2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:padding="16dp"
         android:background="#FFD700"
         tools:context=".MainActivity">
 
-        <RelativeLayout
+        <LinearLayout
+            android:id="@+id/mainLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent"
+            android:background="#FFD700"
+            android:orientation="vertical"
+            android:padding="16dp"
+            tools:context=".MainActivity">
 
-            <TextView
-                android:id="@+id/textTop"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="범죄 범죄 !!"
-                android:textAlignment="center"
-                android:textColor="#FF5733"
-                android:textSize="30dp"
-                android:textStyle="bold"
-                android:paddingTop="15dp"
-                android:paddingBottom="15dp" />
-            <Button
-                android:id="@+id/emergencyCallButton"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/textTop"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:fontFamily="@font/nanumgothicbold"
+                    android:paddingTop="15dp"
+                    android:paddingBottom="15dp"
+                    android:text="범죄 범죄 !!"
+                    android:textAlignment="center"
+                    android:textColor="#FF5733"
+                    android:textSize="36dp"
+                    android:textStyle="bold" />
+
+                <!-- 구분선 추가 -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_below="@id/textTop"
+                    android:background="@color/black" />
+
+            </RelativeLayout>
+            <!-- 뉴스 토픽 표시 섹션 -->
+            <TextView
+                android:id="@+id/location"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="긴급 전화"
-                android:textColor="#FFFFFF"
-                android:background="@drawable/button_emergency_background"
-                android:layout_gravity="start"
-                android:onClick="makeEmergencyCall"/>
-            <!-- 구분선 추가 -->
-            <View
+                android:layout_gravity="center_horizontal"
+                android:fontFamily="@font/nanumgothicbold"
+                android:paddingTop="10dp"
+                android:text="대덕구 오정동"
+                android:textColor="@color/black"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/date_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/nanumgothicbold"
+                android:text="2024-05-26 08:40 PM"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <!-- Main status section -->
+            <ImageView
+                android:id="@+id/main_icon"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:src="@drawable/ic_g2" />
+
+            <TextView
+                android:id="@+id/main_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="8dp"
+                android:fontFamily="@font/nanumgothicbold"
+                android:text="보통"
+                android:textColor="@color/black"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/main_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/nanumgothicbold"
+                android:text="기이이이이본"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <!-- Crime status section -->
+
+
+            <LinearLayout
+                android:id="@+id/subLayout"
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="@color/black"
-                android:layout_below="@id/textTop" />
-
-        </RelativeLayout>
-        <!-- 뉴스 토픽 표시 섹션 -->
-        <TextView
-            android:id="@+id/location"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="대덕구 오정동"
-            android:textSize="24sp"
-            android:paddingTop="10dp"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            android:layout_gravity="center_horizontal"/>
-
-        <TextView
-            android:id="@+id/date_time"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="2024-05-26 08:40 PM"
-            android:textSize="14sp"
-            android:textColor="@color/black"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="4dp"/>
-
-        <!-- Main status section -->
-        <ImageView
-            android:id="@+id/main_icon"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
-            android:src="@drawable/ic_g2"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"/>
-
-        <TextView
-            android:id="@+id/main_status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="보통"
-            android:textSize="30sp"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"/>
-
-        <TextView
-            android:id="@+id/main_message"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="기이이이이본"
-            android:textSize="14sp"
-            android:textColor="@color/black"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="4dp"/>
-
-        <!-- Crime status section -->
-
-
-        <LinearLayout
-            android:id="@+id/subLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:layout_marginBottom="14dp"
-            android:gravity="center_horizontal"
-            android:layout_marginTop="14dp"
-            android:background="@drawable/rounded_corner_background">
-
-            <LinearLayout
-                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="14dp"
+                android:background="@drawable/rounded_corner_background"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal"
+                android:padding="16dp">
 
-                <ImageView
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:src="@drawable/ic_handcuffs"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="절도"
-                    android:textSize="14sp"
-                    android:textColor="@color/black"
-                    android:layout_marginTop="4dp"/>
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/theftStatus"
-                    android:layout_width="wrap_content"
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:src="@drawable/ic_handcuffs" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="절도"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/theftStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="보통"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="보통"
-                    android:textSize="14sp"
-                    android:textColor="@color/black"/>
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:src="@drawable/ic_violence" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="강도"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/robberyStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="보통"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:src="@drawable/ic_violent" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="폭행"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/assaultStatus"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="보통"
+                        android:textColor="@color/black"
+                        android:textSize="14sp" />
+                </LinearLayout>
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="0dp"
+            <!-- Daily crime status section -->
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="16dp"
+                android:fontFamily="@font/nanumgothicbold"
+                android:text="일별 범죄 내역"
+                android:textColor="@color/black"
+                android:textSize="18sp" />
 
-                <ImageView
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:src="@drawable/ic_violence"/>
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="강도"
-                    android:textSize="14sp"
-                    android:textColor="@color/black"
-                    android:layout_marginTop="4dp"/>
-
-                <TextView
-                    android:id="@+id/robberyStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="보통"
-                    android:textSize="14sp"
-                    android:textColor="@color/black"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
+            <TableLayout
+                android:id="@+id/subTableLow"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
+                android:layout_marginTop="8dp"
+                android:background="#FFFFFF"
+                android:stretchColumns="1">
 
-                <ImageView
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:src="@drawable/ic_violent"/>
+                <TableRow
+                    android:id="@+id/subTableLowTop"
+                    android:background="#FFEB3B">
 
-                <TextView
-                    android:layout_width="wrap_content"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="요일"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="232dp"
+                        android:layout_height="match_parent"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="시간"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="컨디션"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="상태"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+                </TableRow>
+
+                <TableRow>
+
+                    <TextView
+                        android:id="@+id/date_1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="월요일"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/time_1"
+                        android:layout_width="200dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="00:00~04:00"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/cond_1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="보통"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/image_1"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_violence" />
+                </TableRow>
+
+                <TableRow>
+
+                    <TextView
+                        android:id="@+id/date_2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="월요일"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/time_2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="04:00~07:00"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/cond_2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="좋음"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/image_2"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_violence" />
+                </TableRow>
+
+                <TableRow>
+
+                    <TextView
+                        android:id="@+id/date_3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="월요일"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/time_3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="07:00~12:00"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/cond_3"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="보통"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/image_3"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_violence" />
+                </TableRow>
+
+                <TableRow>
+
+                    <TextView
+                        android:id="@+id/date_4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="월요일"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/time_4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="12:00~18:00"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/cond_4"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="위험"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/image_4"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_violence" />
+                </TableRow>
+
+                <TableRow>
+
+                    <TextView
+                        android:id="@+id/date_5"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="월요일"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/time_5"
+                        android:layout_width="200dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="18:00~20:00"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/cond_5"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="보통"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/image_5"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_violence" />
+                </TableRow>
+
+                <TableRow>
+
+                    <TextView
+                        android:id="@+id/date_6"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="월요일"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/time_6"
+                        android:layout_width="200dp"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="20:00~24:00"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/cond_6"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="@font/nanumgothicbold"
+                        android:text="보통"
+                        android:textColor="#000000"
+                        android:textSize="14sp" />
+
+                    <ImageView
+                        android:id="@+id/image_6"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_violence" />
+                </TableRow>
+            </TableLayout>
+
+            <!-- 뉴스 섹션 -->
+            <LinearLayout
+                android:id="@+id/newsLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="50dp"
+                android:orientation="vertical">
+
+                <!-- 뉴스 카드 1 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="폭행"
-                    android:textSize="14sp"
-                    android:textColor="@color/black"
-                    android:layout_marginTop="4dp"/>
+                    android:layout_margin="8dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
 
-                <TextView
-                    android:id="@+id/assaultStatus"
-                    android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:id="@+id/newsTitle1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/nanumgothicbold"
+                            android:text="News Title 1"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/newsContent1"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:fontFamily="@font/nanumgothicbold"
+                            android:text="News Content 1"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- 뉴스 카드 2 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="보통"
-                    android:textSize="14sp"
-                    android:textColor="@color/black"/>
+                    android:layout_margin="8dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:id="@+id/newsTitle2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/nanumgothicbold"
+                            android:text="News Title 2"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/newsContent2"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:fontFamily="@font/nanumgothicbold"
+                            android:text="News Content 2"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- 뉴스 카드 3 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="8dp"
+                    app:cardCornerRadius="8dp"
+                    app:cardElevation="4dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:id="@+id/newsTitle3"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/nanumgothicbold"
+                            android:text="News Title 3"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/newsContent3"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="8dp"
+                            android:fontFamily="@font/nanumgothicbold"
+                            android:text="News Content 3"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
             </LinearLayout>
         </LinearLayout>
-
-        <!-- Daily crime status section -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="일별 범죄 내역"
-            android:textSize="18sp"
-            android:textColor="@color/black"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"/>
-
-        <TableLayout
-            android:id="@+id/subTableLow"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:stretchColumns="1"
-            android:background="#FFFFFF">
-
-            <TableRow
-                android:id="@+id/subTableLowTop"
-                android:background="#FFEB3B">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="요일"
-                    android:textSize="14sp"
-                    android:textColor="#000000"/>
-
-                <TextView
-                    android:layout_width="232dp"
-                    android:layout_height="match_parent"
-                    android:text="시간"
-                    android:textColor="#000000"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="컨디션"
-                    android:textColor="#000000"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="상태"
-                    android:textSize="14sp"
-                    android:textColor="#000000"/>
-            </TableRow>
-
-            <TableRow>
-                <TextView
-                    android:id="@+id/date_1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="월요일"
-                    android:textSize="14sp"
-                    android:textColor="#000000"/>
-
-                <TextView
-                    android:id="@+id/time_1"
-                    android:layout_width="200dp"
-                    android:layout_height="wrap_content"
-                    android:text="00:00~04:00"
-                    android:textColor="#000000"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/cond_1"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="보통"
-                    android:textColor="#000000"
-                    android:textSize="14sp" />
-                <ImageView
-                    android:id="@+id/image_1"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_violence"/>
-            </TableRow>
-
-            <TableRow>
-                <TextView
-                    android:id="@+id/date_2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="월요일"
-                    android:textSize="14sp"
-                    android:textColor="#000000"/>
-
-                <TextView
-                    android:id="@+id/time_2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="04:00~07:00"
-                    android:textSize="14sp"
-                    android:textColor="#000000"/>
-
-                <TextView
-                    android:id="@+id/cond_2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="좋음"
-                    android:textSize="14sp"
-                    android:textColor="#000000"/>
-                <ImageView
-                    android:id="@+id/image_2"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_violence"/>
-            </TableRow>
-
-            <TableRow>
-                <TextView
-                    android:id="@+id/date_3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="월요일"
-                    android:textSize="14sp"
-                    android:textColor="#000000"/>
-
-                <TextView
-                    android:id="@+id/time_3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="07:00~12:00"
-                    android:textSize="14sp"
-                    android:textColor="#000000"/>
-
-                <TextView
-                    android:id="@+id/cond_3"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="보통"
-                    android:textSize="14sp"
-                    android:textColor="#000000"/>
-                <ImageView
-                    android:id="@+id/image_3"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_violence"/>
-            </TableRow>
-
-            <TableRow>
-                <TextView
-                    android:id="@+id/date_4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="월요일"
-                    android:textSize="14sp"
-                    android:textColor="#000000"/>
-
-                <TextView
-                    android:id="@+id/time_4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="12:00~18:00"
-                    android:textSize="14sp"
-                    android:textColor="#000000"/>
-
-                <TextView
-                    android:id="@+id/cond_4"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="위험"
-                    android:textColor="#000000"
-                    android:textSize="14sp" />
-                <ImageView
-                    android:id="@+id/image_4"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_violence"/>
-            </TableRow>
-            <TableRow>
-                <TextView
-                    android:id="@+id/date_5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="월요일"
-                    android:textSize="14sp"
-                    android:textColor="#000000"/>
-
-                <TextView
-                    android:id="@+id/time_5"
-                    android:layout_width="200dp"
-                    android:layout_height="wrap_content"
-                    android:text="18:00~20:00"
-                    android:textColor="#000000"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/cond_5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="보통"
-                    android:textColor="#000000"
-                    android:textSize="14sp" />
-                <ImageView
-                    android:id="@+id/image_5"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_violence"/>
-            </TableRow>
-            <TableRow>
-                <TextView
-                    android:id="@+id/date_6"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="월요일"
-                    android:textSize="14sp"
-                    android:textColor="#000000"/>
-
-                <TextView
-                    android:id="@+id/time_6"
-                    android:layout_width="200dp"
-                    android:layout_height="wrap_content"
-                    android:text="20:00~24:00"
-                    android:textColor="#000000"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/cond_6"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="보통"
-                    android:textColor="#000000"
-                    android:textSize="14sp" />
-                <ImageView
-                    android:id="@+id/image_6"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/ic_violence"/>
-            </TableRow>
-        </TableLayout>
-
-        <!-- 뉴스 섹션 -->
-        <LinearLayout
-            android:id="@+id/newsLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="50dp">
-
-            <!-- 뉴스 카드 1 -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:id="@+id/newsTitle1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="News Title 1"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/newsContent1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="News Content 1"
-                        android:textSize="14sp"
-                        android:layout_marginTop="8dp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- 뉴스 카드 2 -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:id="@+id/newsTitle2"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="News Title 2"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/newsContent2"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="News Content 2"
-                        android:textSize="14sp"
-                        android:layout_marginTop="8dp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- 뉴스 카드 3 -->
-            <androidx.cardview.widget.CardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_margin="8dp"
-                app:cardCornerRadius="8dp"
-                app:cardElevation="4dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:id="@+id/newsTitle3"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="News Title 3"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/newsContent3"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="News Content 3"
-                        android:textSize="14sp"
-                        android:layout_marginTop="8dp" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-        </LinearLayout>
-    </LinearLayout>
     </ScrollView>
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
@@ -557,17 +605,18 @@
         android:layout_gravity="bottom"
         android:background="?attr/colorPrimary">
 
-    <!-- Button inside BottomNavigationView -->
-    <Button
-        android:id="@+id/Homebutton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        android:textStyle="bold"
-        android:textSize="16sp"
-        android:textColor="@android:color/black"
-        android:text="길을 찾으러 가볼까요?"
-        app:layout_anchorGravity="center"
-        android:layout_gravity="center"/>
-</com.google.android.material.bottomnavigation.BottomNavigationView>
+        <!-- Button inside BottomNavigationView -->
+        <Button
+            android:id="@+id/Homebutton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:text="길을 찾으러 가볼까요?"
+            android:fontFamily="@font/nanumgothicbold"
+            app:layout_anchorGravity="center"
+            android:layout_gravity="center"/>
+    </com.google.android.material.bottomnavigation.BottomNavigationView>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

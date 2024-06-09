@@ -81,7 +81,7 @@
                     android:layout_width="0dp"
                     android:layout_height="48dp"
                     android:layout_weight="1"
-                    android:hint="출발지 검색"
+                    android:hint="출발지 (기본은 현재 위치입니다.)"
                     android:textSize="10dp"
                     android:padding="10dp"
                     android:background="@drawable/search_bar_background" />
@@ -215,6 +215,14 @@
                 android:src="@drawable/location_btn_selector"
                 app:layout_constraintEnd_toEndOf="@id/zoomLevelText"
                 app:layout_constraintTop_toBottomOf="@id/zoomLevelText" />
+            <ImageView
+                android:id="@+id/poLice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/police"
+                app:layout_constraintEnd_toEndOf="@id/locationImage"
+                app:layout_constraintTop_toBottomOf="@id/locationImage"/>
 
 
             <!-- 맨 하단 경로 안내 레이아웃 -->
@@ -231,7 +239,7 @@
                 <!-- 경로를 나타내는 부분 -->
                 <ScrollView
                     android:layout_width="match_parent"
-                    android:layout_height="100dp">
+                    android:layout_height="wrap_content">
 
                     <LinearLayout
                         android:id="@+id/routeDescriptionLayout"
@@ -248,7 +256,7 @@
                             android:layout_height="wrap_content"
                             android:textColor="@android:color/black"
                             android:textStyle="bold"
-                            android:textSize="20dp"/>
+                            android:textSize="15dp"/>
                     </LinearLayout>
                 </ScrollView>
 

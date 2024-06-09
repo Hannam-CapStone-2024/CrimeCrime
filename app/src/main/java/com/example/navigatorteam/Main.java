@@ -3,7 +3,6 @@ package com.example.navigatorteam;
 import static com.example.navigatorteam.Support.CrimeType.getIconResourceByCrimeType;
 
 import android.Manifest;
-import android.content.pm.ActivityInfo;
 import android.graphics.PointF;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -25,7 +24,9 @@ import org.json.JSONObject;
 import org.w3c.dom.Element;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -46,6 +47,7 @@ import com.example.navigatorteam.Class.Spot;
 import com.example.navigatorteam.Manager.SpotController;
 import com.example.navigatorteam.Support.CrimeType;
 import com.example.navigatorteam.databinding.ActivityMainBinding;
+import com.skt.tmap.TMapAutoCompleteV2;
 import com.skt.tmap.TMapData;
 import com.skt.tmap.TMapGpsManager;
 import com.skt.tmap.TMapInfo;
@@ -66,15 +68,19 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
-public class Main extends AppCompatActivity {
+public class Main extends AppCompatActivity implements LocationListener{
     private LocationManager locationManager;
     private ImageView zoomInImage;
+    private int zoomIndex = -1;
     private static final float MIN_DISTANCE_CHANGE_FOR_UPDATES = 1.0f;
 
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
     private Location location;
+    private Location mylocation;
 
     private LinearLayout routeLayout;
     private TextView routeDistanceTextView;
@@ -87,13 +93,52 @@ public class Main extends AppCompatActivity {
     private EditText autoCompleteEdit;
     private TMapView tMapView;
     private ListView autoCompleteListView;
-    private AutoCompleteListAdapter autoCompleteListAdapter;
     private TMapPoint nowpoint;
 
+    @Override
+    public void onLocationChanged(Location location) {
+        Log.d("onLocationChanged", "Location changed");
+        runOnUiThread(() -> {
+            try {
+                nowpoint = new TMapPoint(location.getLatitude(), location.getLongitude());
+            } catch (Exception e) {
+                Log.e("onLocationChanged", "Error in location update", e);
+            }
+        });
+    }
+
     private void checkLocationPermission() {
+        // 위치 권한이 부여되어 있는지 확인
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // 권한이 없으면 사용자에게 요청
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         } else {
+            // 권한이 이미 부여되었으면 위치 정보 가져오기
+            getLocation();
+        }
+    }
+
+    private void getLocation() {
+        // 위치 관리자 가져오기
+        android.location.LocationManager locationManager = (android.location.LocationManager) getSystemService(LOCATION_SERVICE);
+        try {
+            // GPS 또는 네트워크를 통해 마지막으로 알려진 위치 가져오기
+            Location gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+            Location networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
+
+            Location location = (gpsLocation != null) ? gpsLocation : networkLocation;
+
+            if (location != null) {
+                double latitude = location.getLatitude();
+                double longitude = location.getLongitude();
+                nowpoint = new TMapPoint(latitude,longitude);
+            } else {
+                // 마지막으로 알려진 위치가 없는 경우, 새로운 위치 업데이트를 요청합니다.
+                // 이 부분은 필요에 따라 구현하실 수 있습니다.
+                Toast.makeText(this, "위치 정보를 가져올 수 없습니다.", Toast.LENGTH_SHORT).show();
+            }
+        } catch (SecurityException e) {
+            e.printStackTrace();
         }
     }
 
@@ -107,13 +152,12 @@ public class Main extends AppCompatActivity {
             }
         }
     }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
         // TMapView 초기화
         tMapView = new TMapView(this);
         binding.tmapViewContainer.addView(tMapView);
@@ -151,16 +195,25 @@ public class Main extends AppCompatActivity {
                 initAutoComplete();
                 centerPositon();
                 showAll();
-                setTrackingMode(true);
+                int zoom = tMapView.getZoomLevel();
+                zoomLevelTextView.setText("Lv." + zoom);
             }
 
+        });
+        tMapView.setOnEnableScrollWithZoomLevelListener(new TMapView.OnEnableScrollWithZoomLevelCallback() {
+            @Override
+            public void onEnableScrollWidthZoomLevel(float v, TMapPoint tMapPoint) {
+                int zoom = (int) v;
+                zoomLevelTextView.setText("Lv." + zoom);
+                zoomIndex = zoom - 6;
+            }
         });
 
         tMapView.setOnCallOutRightButtonClickListener(new TMapView.OnCallOutRightButtonClickCallback() {
             @Override
             public void onCalloutRightButton(TMapMarkerItem tMapMarkerItem) {
-                ReverseLabelView dialog = new ReverseLabelView(Main.this);
-                dialog.setText(name + bizCatName, newAddress + " " +na1,tel, homepage );
+                ReverseLabelView dialog = new ReverseLabelView(Main.this, false);
+                dialog.setText(name + " \n("+ bizCatName + ") ", newAddress + " " +na1,tel, homepage );
                 dialog.show();
             }
         });
@@ -173,21 +226,27 @@ public class Main extends AppCompatActivity {
         locationImage.setOnClickListener(onClickListener);
 
         // 어댑터 초기화
-        autoCompleteListAdapter = new AutoCompleteListAdapter(this);
 
         // 뷰 초기화
         zoomInImage = findViewById(R.id.zoomInImage);
         zoomOutImage = findViewById(R.id.zoomOutImage);
-        autoCompleteLayout = findViewById(R.id.autoCompleteLayout);
-        autoCompleteEdit = findViewById(R.id.autoCompleteEdit);
-        autoCompleteListView = findViewById(R.id.autoCompleteListView);
+        zoomLevelTextView = findViewById(R.id.zoomLevelText);
         routeLayout = findViewById(R.id.routeLayout);
         routeDistanceTextView = findViewById(R.id.routeDistanceText);
         routeTimeTextView = findViewById(R.id.routeTimeText);
         routedescriptionTextView = findViewById(R.id.routedescriptionTextView);
 
+
+        ImageView policeButton = findViewById(R.id.poLice);
+
+        policeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                nearpolice("파출소 지구대");
+            }
+        });
+
         // 어댑터 설정
-        autoCompleteListView.setAdapter(autoCompleteListAdapter);
 
         Button buttonWalkingRoute = findViewById(R.id.buttonWalkingRoute);
         buttonWalkingRoute.setOnClickListener(new View.OnClickListener() {
@@ -206,6 +265,7 @@ public class Main extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+
 
         // SpotController 초기화
 
@@ -242,80 +302,174 @@ public class Main extends AppCompatActivity {
             }
         });
     }
-
-
+    private void nearpolice(String data) {
+        TMapData tMapData = new TMapData();
+        tMapData.findAroundNamePOI(nowpoint, data, 2, 1, new TMapData.OnFindAroundNamePOIListener() {
+            @Override
+            public void onFindAroundNamePOI(ArrayList<TMapPOIItem> arrayList) {
+                tMapView.removeAllTMapMarkerItem();
+                ArrayList<TMapPoint> pointList = new ArrayList<>();
+                if (arrayList != null) {
+                    for (TMapPOIItem item : arrayList) {
+                        // 각 POI에 대해 상세 정보 가져오기
+                        getPOIDetail(item);
+                        // 나머지 코드는 유지됨
+                        tMapView.addTMapPOIItem(arrayList);
+                        pointList.add(item.getPOIPoint());
+                    }
+                    TMapInfo info = tMapView.getDisplayTMapInfo(pointList);
+                    tMapView.setZoomLevel(info.getZoom());
+                    tMapView.setCenterPoint(info.getPoint().getLatitude(), info.getPoint().getLongitude());
+                }
+            }
+        });
+    }
+    private void updateZoomLevel(boolean upanddown) {
+        if(upanddown == true)
+        {
+            int zoom = tMapView.getZoomLevel();
+            int zoomup = zoom + 1;
+            zoomLevelTextView.setText("Lv." + zoomup);
+            if(zoomup == 20)
+            {
+                zoomup = 19;
+                zoomLevelTextView.setText("Lv." + zoomup);
+            }
+        }
+        else
+        {
+            int zoom = tMapView.getZoomLevel();
+            int zoomdown = zoom - 1;
+            zoomLevelTextView.setText("Lv." + zoomdown);
+        }
+    }
+    private AutoComplete2ListAdapter autoComplete2ListAdapter;
     private void initAutoComplete() {
         autoCompleteLayout = findViewById(R.id.autoCompleteLayout);
         autoCompleteLayout.setVisibility(View.VISIBLE);
         autoCompleteEdit = findViewById(R.id.autoCompleteEdit);
         autoCompleteListView = findViewById(R.id.autoCompleteListView);
-        autoCompleteListAdapter = new AutoCompleteListAdapter(this);
-        autoCompleteListView.setAdapter(autoCompleteListAdapter);
+        autoComplete2ListAdapter = new AutoComplete2ListAdapter(this);
+        autoCompleteListView.setAdapter(autoComplete2ListAdapter);
+
         autoCompleteListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                String keyword = (String) autoCompleteListAdapter.getItem(position);
-
-                findAllPoi(keyword);
-                autoCompleteLayout.setVisibility(View.GONE);
+                TMapAutoCompleteV2 item = (TMapAutoCompleteV2) autoComplete2ListAdapter.getItem(position);
+                if (item != null) {
+                    String keyword = item.keyword;
+                    findAllPoi(keyword);
+                    autoCompleteListView.setVisibility(View.GONE);
+                }
             }
         });
 
         autoCompleteEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                autoCompleteListView.setVisibility(View.VISIBLE);
                 String keyword = s.toString();
-
                 TMapData tMapData = new TMapData();
-
-                tMapData.autoComplete(keyword, new TMapData.OnAutoCompleteListener() {
+                Log.d("TAG", "출발지 입력 전 내 현재위치: " + nowpoint);
+                Log.d("TAG", "검색 반경: " + 1000); // 검색 반경 로그 출력
+                tMapData.autoCompleteV2(keyword, nowpoint.getLatitude(), nowpoint.getLongitude(), 1000, 10, new TMapData.OnAutoCompleteV2Listener() {
                     @Override
-                    public void onAutoComplete(ArrayList<String> itemList) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                autoCompleteListAdapter.setItemList(itemList);
+                    public void onAutoCompleteV2(ArrayList<TMapAutoCompleteV2> arrayList) {
+                        ArrayList<TMapAutoCompleteV2> filteredList = new ArrayList<>();
+                        for (TMapAutoCompleteV2 item : arrayList) {
+                            try {
+                                double itemLat = Double.parseDouble(item.lat);
+                                double itemLon = Double.parseDouble(item.lon);
+                                double distance = calculateDistance2(nowpoint.getLatitude(), nowpoint.getLongitude(), itemLat, itemLon);
+                                if (distance <= 2000) { // 1km 이내의 POI만 필터링
+                                    filteredList.add(item);
+                                }
+                            } catch (NumberFormatException e) {
+                                Log.e("TAG", "Invalid latitude or longitude format: " + item.lat + ", " + item.lon, e);
                             }
-                        });
-
-                    }
-                });
-
-            }
+                        }
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    autoCompleteListView.setVisibility(View.VISIBLE);
+                                    autoComplete2ListAdapter.setItemList(arrayList);
+                                }
+                            });
+                        }
+                    });
+                }
 
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
             }
 
             @Override
             public void afterTextChanged(Editable editable) {
+            }
+        });
 
+        autoCompleteEdit.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                if (actionId == EditorInfo.IME_ACTION_SEARCH || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+                    String keyword = autoCompleteEdit.getText().toString();
+                    if (!keyword.isEmpty()) {
+                        findAllPoi(keyword);
+                        autoCompleteListView.setVisibility(View.GONE);
+                    }
+                    return true;
+                }
+                return false;
             }
         });
     }
-
-
     public void findAllPoi(String strData) {
         TMapData tmapdata = new TMapData();
         tmapdata.findAllPOI(strData, new TMapData.OnFindAllPOIListener() {
             @Override
             public void onFindAllPOI(ArrayList<TMapPOIItem> poiItemList) {
-                showPOIResultDialog(poiItemList);
+                ArrayList<TMapPOIItem> filteredPoiList = filterPoiList(poiItemList, strData);
+                showPOIResultDialog(filteredPoiList, mylocation);
             }
         });
     }
 
-    private void showPOIResultDialog(final ArrayList<TMapPOIItem> poiItem) {
+    private ArrayList<TMapPOIItem> filterPoiList(ArrayList<TMapPOIItem> poiItemList, String keyword) {
+        ArrayList<TMapPOIItem> filteredList = new ArrayList<>();
+        for (TMapPOIItem poiItem : poiItemList) {
+            if (poiItem.getPOIName().equalsIgnoreCase(keyword)) {
+                filteredList.add(poiItem);
+            }
+        }
+        return filteredList;
+    }
 
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (poiItem != null) {
+    private void showPOIResultDialog(final ArrayList<TMapPOIItem> poiItem, final Location myLocation) {
+        if (poiItem != null) {
+            // 현재 위치를 기준으로 POI 리스트를 거리순으로 정렬
+            Collections.sort(poiItem, new Comparator<TMapPOIItem>() {
+                @Override
+                public int compare(TMapPOIItem poi1, TMapPOIItem poi2) {
+                    double distance1 = calculateDistance2(nowpoint.getLatitude(), nowpoint.getLongitude(), poi1.getPOIPoint().getLatitude(), poi1.getPOIPoint().getLongitude());
+                    double distance2 = calculateDistance2(nowpoint.getLatitude(), nowpoint.getLongitude(), poi2.getPOIPoint().getLatitude(), poi2.getPOIPoint().getLongitude());
+
+                    // 디버깅을 위해 거리 출력
+                    Log.d("DistanceDebug", "POI 1: " + poi1.getPOIName() + " Distance: " + distance1);
+                    Log.d("DistanceDebug", "POI 2: " + poi2.getPOIName() + " Distance: " + distance2);
+                    Log.d("NP", "현재 위치: " + nowpoint + " " + nowpoint.getLatitude() + " " + nowpoint.getLongitude());
+                    return Double.compare(distance1, distance2);
+                }
+            });
+            for (TMapPOIItem item : poiItem) {
+                double distance = calculateDistance2(nowpoint.getLatitude(), nowpoint.getLongitude(), item.getPOIPoint().getLatitude(), item.getPOIPoint().getLongitude());
+                Log.d("SortedPOI", "POI: " + item.getPOIName() + " Distance: " + distance);
+            }
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
                     CharSequence[] item = new CharSequence[poiItem.size()];
                     for (int i = 0; i < poiItem.size(); i++) {
-                        item[i] = poiItem.get(i).name;
+                        item[i] = poiItem.get(i).getPOIName() + " (" +  (int) calculateDistance2(nowpoint.getLatitude(), nowpoint.getLongitude(), poiItem.get(i).getPOIPoint().getLatitude(), poiItem.get(i).getPOIPoint().getLongitude()) + "m)";
                     }
                     new AlertDialog.Builder(Main.this)
                             .setTitle("검색 결과")
@@ -334,10 +488,21 @@ public class Main extends AppCompatActivity {
                                 }
                             }).create().show();
                 }
+            });
+        }
+    }
 
-            }
-        });
-
+    // 두 지점 간 거리 계산 (Haversine 공식 사용)
+    private double calculateDistance2(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // 지구의 반지름 (단위: km)
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distance = R * c * 1000; // 단위: m
+        return distance;
     }
     private void getPOIDetail(TMapPOIItem poi) {
         // POI 상세 정보 요청
@@ -550,8 +715,10 @@ public class Main extends AppCompatActivity {
         public void onClick(View v) {
             if (v.equals(zoomInImage)) {
                 tMapView.mapZoomIn();
+                updateZoomLevel(true);
             } else if (v.equals(zoomOutImage)) {
                 tMapView.mapZoomOut();
+                updateZoomLevel(false);
             } else if (v.equals(locationImage)){
                 locationImage.setSelected(!locationImage.isSelected());
                 setTrackingMode(locationImage.isSelected());
@@ -569,8 +736,10 @@ public class Main extends AppCompatActivity {
             manager.openGps();
 
             tMapView.setTrackingMode(true);
+            tMapView.setCompassMode(true);
         } else {
             tMapView.setTrackingMode(false);
+            tMapView.setCompassMode(false);
             manager.setOnLocationChangeListener(null);
         }
     }
@@ -580,6 +749,8 @@ public class Main extends AppCompatActivity {
         public void onLocationChange(Location location) {
             if (location != null) {
                 tMapView.setLocationPoint(location.getLatitude(), location.getLongitude());
+                nowpoint = new TMapPoint(location.getLatitude(), location.getLongitude());
+                mylocation = location;
             }
         }
     };
@@ -613,9 +784,10 @@ public class Main extends AppCompatActivity {
             Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             if (location != null) {
                 // 현재 위치를 출발지로 설정합니다.
-                TMapPoint point = new TMapPoint(location.getLatitude(), location.getLongitude());
+                nowpoint = new TMapPoint(location.getLatitude(), location.getLongitude());
+                mylocation = location;
                 // 출발지 마커를 추가합니다.
-                tMapView.setCenterPoint(point.getLatitude(), point.getLongitude());
+                tMapView.setCenterPoint(nowpoint.getLatitude(), nowpoint.getLongitude());
                 tMapView.setZoomLevel(15);
             } else {
                 Toast.makeText(this, "현재 위치를 가져올 수 없습니다.", Toast.LENGTH_SHORT).show();

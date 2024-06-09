@@ -12,9 +12,10 @@
         android:id="@+id/textViewNavigator"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Navigator"
+        android:text="범죄는 안돼 !"
         android:textSize="24sp"
         android:textStyle="bold"
+        android:textColor="@color/black"
         android:layout_marginTop="16dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -132,6 +133,14 @@
                 android:src="@drawable/location_btn_selector"
                 app:layout_constraintEnd_toEndOf="@id/zoomLevelText"
                 app:layout_constraintTop_toBottomOf="@id/zoomLevelText" />
+            <ImageView
+                android:id="@+id/poLice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:src="@drawable/police"
+                app:layout_constraintEnd_toEndOf="@id/locationImage"
+                app:layout_constraintTop_toBottomOf="@id/locationImage"/>
 
 
             <!-- Marker 설명 레이아웃 -->

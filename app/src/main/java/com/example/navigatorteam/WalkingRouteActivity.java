@@ -53,6 +53,7 @@ import com.example.navigatorteam.Manager.SpotController;
 import com.example.navigatorteam.Support.CrimeType;
 import com.example.navigatorteam.Support.LocationInfo;
 import com.example.navigatorteam.databinding.ActivityMainBinding;
+import com.skt.tmap.TMapAutoCompleteV2;
 import com.skt.tmap.TMapData;
 import com.skt.tmap.TMapGpsManager;
 import com.skt.tmap.TMapInfo;
@@ -64,6 +65,8 @@ import com.skt.tmap.overlay.TMapMarkerItem;
 import com.skt.tmap.overlay.TMapPolyLine;
 import com.skt.tmap.poi.TMapPOIItem;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -80,6 +83,8 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -137,8 +142,14 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         Log.d("onLocationChanged", "Location changed");
         runOnUiThread(() -> {
             try {
-                Alert(location);
                 OnMove();
+                nowposition = new TMapPoint(location.getLatitude(), location.getLongitude());
+                long currentTime = System.currentTimeMillis();
+                // 현재 시간과 마지막 알림 시간의 차이를 계산합니다.
+                if (currentTime - lastAlertTime >= 60000) { // 60000 밀리초 = 1분
+                    Alert(location);
+                    lastAlertTime = currentTime; // 마지막 알림 시간을 현재 시간으로 갱신합니다.
+                }
             } catch (Exception e) {
                 Log.e("onLocationChanged", "Error in location update", e);
             }
@@ -160,12 +171,15 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         double latitude = location.getLatitude();
         double longitude = location.getLongitude();
         // 위치 정보를 사용할 수 있습니다. 여기서는 토스트 메시지로 출력합니다.
-        if (LocationInfo.isDanger(longitude, latitude) && !flag) {
-            showAlert(WalkingRouteActivity.this, "알림", "위험 지역입니다 주의하세요!");
-            flag = true;
-        } else {
-            flag = false;
+        boolean isDanger = LocationInfo.isDanger(longitude, latitude);
+
+        if (isDanger != flag) {
+            if (isDanger) {
+                showAlert(WalkingRouteActivity.this, "알림", "위험 지역입니다 주의하세요!");
+            }
+            flag = isDanger;
         }
+
         TMapPoint loca = new TMapPoint(latitude, longitude);
         if (endPoint != null && loca.getLatitude() == endPoint.getLatitude() && loca.getLongitude() == endPoint.getLongitude()) {
             Intent intent = new Intent(WalkingRouteActivity.this, SafeReturnService.class);
@@ -206,8 +220,8 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             if (location != null) {
                 double latitude = location.getLatitude();
                 double longitude = location.getLongitude();
-                // 위치 정보를 사용할 수 있습니다. 여기서는 토스트 메시지로 출력합니다.
-
+                nowposition = new TMapPoint(latitude,longitude);
+                Alert(location);
             } else {
                 // 마지막으로 알려진 위치가 없는 경우, 새로운 위치 업데이트를 요청합니다.
                 // 이 부분은 필요에 따라 구현하실 수 있습니다.
@@ -219,7 +233,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
     }
 
 
-
+    private static final int MY_PERMISSIONS_REQUEST_SEND_SMS = 0;
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -227,6 +241,13 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             } else {
                 Toast.makeText(this, "위치 권한이 거부되었습니다.", Toast.LENGTH_SHORT).show();
+            }
+        }
+        if (requestCode == MY_PERMISSIONS_REQUEST_SEND_SMS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(WalkingRouteActivity.this, "SMS 권한이 허용되었습니다.", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(WalkingRouteActivity.this, "SMS 권한이 거부되었습니다.", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -240,10 +261,11 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         setContentView(R.layout.activity_walking_route);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         // 위치 권한 확인 및 요청
-        checkLocationPermission();
 
 
         tMapView = new TMapView(this);
+
+        checkLocationPermission();
         FrameLayout mapViewContainer = findViewById(R.id.tmapViewContainer); // 맵을 추가할 컨테이너 레이아웃 찾기
         mapViewContainer.addView(tMapView);
         // TMapView 설정
@@ -253,8 +275,8 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             public void onPressDown(ArrayList<TMapMarkerItem> arrayList, ArrayList<TMapPOIItem> arrayList1, TMapPoint tMapPoint, PointF pointF) {
 
                 if (tMapView.isTrackingMode()) {
-                    //setTrackingMode(false);
-                    //locationImage.setSelected(false);
+                    setTrackingMode(false);
+                    locationImage.setSelected(false);
                 }
             }
 
@@ -306,8 +328,9 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                 // 맵 로딩 완료 후 처리할 작업
                 Log.d("MainActivity", "TMapView is ready");
                 initAutoComplete();
-                setNowposition();
                 addMarkersAndCircles(CrimeZoneController.GetInstance().GetCrimeZones());
+                tMapView.setCenterPoint(nowposition.getLatitude(), nowposition.getLongitude(), true);
+                setCurrentLocationAsStartPoint();
                 totalDistance = 0.0;
                 int zoom = tMapView.getZoomLevel();
                 zoomLevelTextView.setText("Lv." + zoom);
@@ -339,13 +362,15 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
 
         // 어댑터 초기화
         autoCompleteListAdapterStart = new AutoCompleteListAdapter(this);
+        autoComplete2ListAdapterStart = new AutoComplete2ListAdapter(this);
+        autoComplete2ListAdapterEnd = new AutoComplete2ListAdapter(this);
         autoCompleteListAdapterEnd = new AutoCompleteListAdapter(this);
 
         // 어댑터 설정
-        autoCompleteListViewStart.setAdapter(autoCompleteListAdapterStart);
-        autoCompleteListViewEnd.setAdapter(autoCompleteListAdapterEnd);
+        autoCompleteListViewStart.setAdapter(autoComplete2ListAdapterStart);
+        autoCompleteListViewEnd.setAdapter(autoComplete2ListAdapterEnd);
         initAutoComplete();
-
+        ImageView policeButton = findViewById(R.id.poLice);
         autoCompleteListViewStart = findViewById(R.id.autoCompleteListViewStart);
         autoCompleteListViewEnd = findViewById(R.id.autoCompleteListViewEnd);
         Button ReButton = findViewById(R.id.Rebutton);
@@ -359,11 +384,32 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                 zoomIndex = zoom - 6;
             }
         });
+        policeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                nearpolice("파출소 지구대");
+            }
+        });
+        tMapView.setOnCallOutRightButtonClickListener(new TMapView.OnCallOutRightButtonClickCallback() {
+            @Override
+            public void onCalloutRightButton(TMapMarkerItem tMapMarkerItem) {
+                ReverseLabelView dialog = new ReverseLabelView(WalkingRouteActivity.this, true);
+                dialog.setText(name + " \n("+ bizCatName + ") ", newAddress + " " +na1,tel, homepage );
+                dialog.setDestinationListener(new ReverseLabelView.DestinationListener() {
+                    @Override
+                    public void onDestinationSet() {
+                        autoCompleteEditEnd.setText(name);
+                        endPoint = tMapMarkerItem.getTMapPoint();
+                        endname = name;
+
+                    }
+                });
+                dialog.show();
+            }
+        });
         WalikngRoutebutton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                navFlag = true;
-
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -396,6 +442,8 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                 routeInfo.setVisibility(View.GONE);
                 routeDescriptionLayout.setVisibility(View.GONE);
                 routeLayout.setVisibility(View.GONE);
+                navFlag = false;
+                ReButton.setVisibility(View.GONE);
             }
         });
         findRouteButton.setOnClickListener(new View.OnClickListener() { // 길찾기 버튼 눌렀을 때
@@ -410,6 +458,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             public void onClick(View v) {
                 Intent intent = new Intent(WalkingRouteActivity.this, MainActivity.class);
                 startActivity(intent);
+                navFlag = false;
             }
         });
         Button search_placeButton = findViewById(R.id.search_place);
@@ -418,6 +467,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             public void onClick(View v) {
                 Intent intent = new Intent(WalkingRouteActivity.this, Main.class);
                 startActivity(intent);
+                navFlag = false;
             }
         });
         Button currentLocationButton = findViewById(R.id.currentLocationButton); // 현재 위치 설정 버튼
@@ -455,6 +505,28 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             }
         }
     };
+    private void nearpolice(String data) {
+        TMapData tMapData = new TMapData();
+        tMapData.findAroundNamePOI(nowposition, data, 2, 1, new TMapData.OnFindAroundNamePOIListener() {
+            @Override
+            public void onFindAroundNamePOI(ArrayList<TMapPOIItem> arrayList) {
+                tMapView.removeAllTMapMarkerItem();
+                ArrayList<TMapPoint> pointList = new ArrayList<>();
+                if (arrayList != null) {
+                    for (TMapPOIItem item : arrayList) {
+                        // 각 POI에 대해 상세 정보 가져오기
+                        getPOIDetail(item);
+                        // 나머지 코드는 유지됨
+                        tMapView.addTMapPOIItem(arrayList);
+                        pointList.add(item.getPOIPoint());
+                    }
+                    TMapInfo info = tMapView.getDisplayTMapInfo(pointList);
+                    tMapView.setZoomLevel(info.getZoom());
+                    tMapView.setCenterPoint(info.getPoint().getLatitude(), info.getPoint().getLongitude());
+                }
+            }
+        });
+    }
     private void updateZoomLevel(boolean upanddown) {
         if(upanddown == true)
         {
@@ -489,7 +561,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             }
 
             if (isGranted) {
-                tMapView.setZoomLevel(19);
+                tMapView.setZoomLevel(17);
                 setTracking(isTracking);
             } else {
                 requestPermissions(checkPer.toArray(new String[0]), 100);
@@ -497,21 +569,44 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
 
         }
     }
+    private AutoComplete2ListAdapter autoComplete2ListAdapterStart;
+    private AutoComplete2ListAdapter autoComplete2ListAdapterEnd;
     private void initAutoComplete() {
         autoCompleteLayout.setVisibility(View.VISIBLE);
+        autoComplete2ListAdapterStart = new AutoComplete2ListAdapter(this);
+        autoComplete2ListAdapterEnd = new AutoComplete2ListAdapter(this);
+
+        autoCompleteListViewStart.setAdapter(autoComplete2ListAdapterStart);
+        autoCompleteListViewEnd.setAdapter(autoComplete2ListAdapterEnd);
+
         autoCompleteEditStart.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String keyword = s.toString();
                 TMapData tMapData = new TMapData();
-                tMapData.autoComplete(keyword, new TMapData.OnAutoCompleteListener() {
+                Log.d("TAG", "출발지 입력 전 내 현재위치: " + nowposition);
+                Log.d("TAG", "검색 반경: " + 1000); // 검색 반경 로그 출력
+                tMapData.autoCompleteV2(keyword, nowposition.getLatitude(), nowposition.getLongitude(), 1000, 10, new TMapData.OnAutoCompleteV2Listener() {
                     @Override
-                    public void onAutoComplete(ArrayList<String> itemList) {
+                    public void onAutoCompleteV2(ArrayList<TMapAutoCompleteV2> arrayList) {
+                        ArrayList<TMapAutoCompleteV2> filteredList = new ArrayList<>();
+                        for (TMapAutoCompleteV2 item : arrayList) {
+                            try {
+                                double itemLat = Double.parseDouble(item.lat);
+                                double itemLon = Double.parseDouble(item.lon);
+                                double distance = calculateDistance2(nowposition.getLatitude(), nowposition.getLongitude(), itemLat, itemLon);
+                                if (distance <= 2000) { // 1km 이내의 POI만 필터링
+                                    filteredList.add(item);
+                                }
+                            } catch (NumberFormatException e) {
+                                Log.e("TAG", "Invalid latitude or longitude format: " + item.lat + ", " + item.lon, e);
+                            }
+                        }
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
                                 autoCompleteListViewStart.setVisibility(View.VISIBLE);
-                                autoCompleteListAdapterStart.setItemList(itemList);
+                                autoComplete2ListAdapterStart.setItemList(filteredList);
                             }
                         });
                     }
@@ -530,14 +625,29 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String keyword = s.toString();
                 TMapData tMapData = new TMapData();
-                tMapData.autoComplete(keyword, new TMapData.OnAutoCompleteListener() {
+                Log.d("TAG", "출발지 입력 전 내 현재위치: " + nowposition);
+                Log.d("TAG", "검색 반경: " + 1000); // 검색 반경 로그 출력
+                tMapData.autoCompleteV2(keyword, nowposition.getLatitude(), nowposition.getLongitude(), 1000, 10, new TMapData.OnAutoCompleteV2Listener() {
                     @Override
-                    public void onAutoComplete(ArrayList<String> itemList) {
+                    public void onAutoCompleteV2(ArrayList<TMapAutoCompleteV2> arrayList) {
+                        ArrayList<TMapAutoCompleteV2> filteredList = new ArrayList<>();
+                        for (TMapAutoCompleteV2 item : arrayList) {
+                            try {
+                                double itemLat = Double.parseDouble(item.lat);
+                                double itemLon = Double.parseDouble(item.lon);
+                                double distance = calculateDistance2(nowposition.getLatitude(), nowposition.getLongitude(), itemLat, itemLon);
+                                if (distance <= 2000) { // 1km 이내의 POI만 필터링
+                                    filteredList.add(item);
+                                }
+                            } catch (NumberFormatException e) {
+                                Log.e("TAG", "Invalid latitude or longitude format: " + item.lat + ", " + item.lon, e);
+                            }
+                        }
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                autoCompleteListAdapterEnd.setItemList(itemList);
                                 autoCompleteListViewEnd.setVisibility(View.VISIBLE);
+                                autoComplete2ListAdapterEnd.setItemList(filteredList);
                             }
                         });
                     }
@@ -554,43 +664,75 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         autoCompleteListViewStart.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                String keyword = (String) autoCompleteListAdapterStart.getItem(position);
-                findAllPoi(keyword, true);
-                autoCompleteListViewStart.setVisibility(View.GONE);
-
+                TMapAutoCompleteV2 item = (TMapAutoCompleteV2) autoComplete2ListAdapterStart.getItem(position);
+                if (item != null) {
+                    String keyword = item.keyword;
+                    findAllPoi(keyword, true);
+                    autoCompleteListViewStart.setVisibility(View.GONE);
+                }
             }
         });
 
         autoCompleteListViewEnd.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                String keyword = (String) autoCompleteListAdapterEnd.getItem(position);
-                findAllPoi(keyword, false);
-                autoCompleteListViewEnd.setVisibility(View.GONE);
-
+                TMapAutoCompleteV2 item = (TMapAutoCompleteV2) autoComplete2ListAdapterEnd.getItem(position);
+                if (item != null) {
+                    String keyword = item.keyword;
+                    findAllPoi(keyword, false);
+                    autoCompleteListViewEnd.setVisibility(View.GONE);
+                }
             }
         });
     }
+
 
     public void findAllPoi(String strData, boolean isStartPoint) {
         TMapData tmapdata = new TMapData();
         tmapdata.findAllPOI(strData, new TMapData.OnFindAllPOIListener() {
             @Override
             public void onFindAllPOI(ArrayList<TMapPOIItem> poiItemList) {
-                showPOIResultDialog(poiItemList, isStartPoint);
+                // 검색 결과를 필터링하여 특정 키워드와 정확히 일치하는 항목만 선택
+                ArrayList<TMapPOIItem> filteredPoiItems = new ArrayList<>();
+                for (TMapPOIItem poiItem : poiItemList) {
+                    // 항목의 이름이 키워드와 정확히 일치하는 경우에만 선택
+                    if (poiItem.getPOIName().equalsIgnoreCase(strData)) {
+                        filteredPoiItems.add(poiItem);
+                    }
+                }
+                showPOIResultDialog(filteredPoiItems, isStartPoint);
             }
         });
     }
 
 
     private void showPOIResultDialog(final ArrayList<TMapPOIItem> poiItem, boolean isStartPoint) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (poiItem != null) {
+        if (poiItem != null) {
+            // 현재 위치를 기준으로 POI 리스트를 거리순으로 정렬
+            Collections.sort(poiItem, new Comparator<TMapPOIItem>() {
+                @Override
+                public int compare(TMapPOIItem poi1, TMapPOIItem poi2) {
+                    double distance1 = calculateDistance2(nowposition.getLatitude(), nowposition.getLongitude(), poi1.getPOIPoint().getLatitude(), poi1.getPOIPoint().getLongitude());
+                    double distance2 = calculateDistance2(nowposition.getLatitude(), nowposition.getLongitude(), poi2.getPOIPoint().getLatitude(), poi2.getPOIPoint().getLongitude());
+
+                    // 디버깅을 위해 거리 출력
+                    Log.d("DistanceDebug", "POI 1: " + poi1.getPOIName() + " Distance: " + distance1);
+                    Log.d("DistanceDebug", "POI 2: " + poi2.getPOIName() + " Distance: " + distance2);
+                    Log.d("NP", "현재 위치: " + nowposition + " " + nowposition.getLatitude() + " " + nowposition.getLongitude());
+                    return Double.compare(distance1, distance2);
+                }
+            });
+            for (TMapPOIItem item : poiItem) {
+                double distance = calculateDistance2(nowposition.getLatitude(), nowposition.getLongitude(), item.getPOIPoint().getLatitude(), item.getPOIPoint().getLongitude());
+                Log.d("SortedPOI", "POI: " + item.getPOIName() + " Distance: " + distance);
+            }
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
                     CharSequence[] item = new CharSequence[poiItem.size()];
                     for (int i = 0; i < poiItem.size(); i++) {
-                        item[i] = poiItem.get(i).name;
+                        item[i] = poiItem.get(i).getPOIName() + " (" +  (int) calculateDistance2(nowposition.getLatitude(), nowposition.getLongitude(), poiItem.get(i).getPOIPoint().getLatitude(), poiItem.get(i).getPOIPoint().getLongitude()) + "m)";
                     }
                     AlertDialog dialog = new AlertDialog.Builder(WalkingRouteActivity.this)
                             .setTitle("검색 결과입니다.")
@@ -618,8 +760,21 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                             }).create();
                     dialog.show();
                 }
-            }
-        });
+            });
+        }
+    }
+
+    // 두 지점 사이의 거리를 계산하는 헬퍼 메서드 (위도와 경도를 이용한 단순 계산 예제)
+    private double calculateDistance2(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // 지구의 반지름 (단위: km)
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        double distance = R * c * 1000; // 단위: m
+        return distance;
     }
 
 
@@ -738,7 +893,8 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                 } else {
                     t = minute + "분 ";
                 }
-                timetotal = minute;
+                timetotal = totalSec;
+                Log.d("TAG", "타입 토탈: " + timetotal);
                 routeTimeTextView.setText("예상시간 : 약 " + t);
             }
         });
@@ -769,67 +925,14 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         Log.d("TAG", "addMarker2 ID : " + id);
     }
     private void setCurrentLocationAsStartPoint() {
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        try {
-            // GPS를 통해 현재 위치를 가져옵니다.
-            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-            if (location == null) {
-                // 네트워크를 통해 현재 위치를 가져옵니다.
-                location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-            }
-
-            if (location != null) {
                 // 현재 위치를 출발지로 설정합니다.
-                startPoint = new TMapPoint(location.getLatitude(), location.getLongitude());
-                NowreverseGeocoading(startPoint);
+                NowreverseGeocoading(nowposition);
                 autoCompleteEditStart.setText(nowAddress);
-               setTracking(true);
-            } else {
-                Toast.makeText(this, "현재 위치를 가져올 수 없습니다.", Toast.LENGTH_SHORT).show();
-            }
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        }
+
     }
 
-    private void setNowposition() {
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        try {
-            Location gpsLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            Location networkLocation = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-
-            Location location = (gpsLocation != null) ? gpsLocation : networkLocation;
-
-            if (location != null) {
-                // 현재 위치를 출발지로 설정합니다.
-                nowposition = new TMapPoint(location.getLatitude(), location.getLongitude());
-                // 출발지 마커를 추가합니다.
-                //tMapView.setCenterPoint(nowposition.getLatitude(), nowposition.getLongitude());
-            } else {
-                Toast.makeText(this, "현재 위치를 가져올 수 없습니다.", Toast.LENGTH_SHORT).show();
-            }
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        }
-    }
-    private void centerPositon(){
-        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        try {
-            // GPS를 통해 현재 위치를 가져옵니다.
-            Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-            if (location != null) {
-                // 현재 위치를 출발지로 설정합니다.
-                nowposition = new TMapPoint(location.getLatitude(), location.getLongitude());
-                // 출발지 마커를 추가합니다.
-                tMapView.setCenterPoint(nowposition.getLatitude(), nowposition.getLongitude());
-                tMapView.setZoomLevel(15);
-            } else {
-                Toast.makeText(this, "현재 위치를 가져올 수 없습니다.", Toast.LENGTH_SHORT).show();
-            }
-        } catch (SecurityException e) {
-            e.printStackTrace();
-        }
+    private void centerPositon(double lan , double lon){
+        tMapView.setCenterPoint(lan, lon);
     }
     private void NowreverseGeocoading(TMapPoint tMapPoint) {
         TMapData tMapData = new TMapData();
@@ -961,16 +1064,27 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             manager.setProvider(TMapGpsManager.PROVIDER_NETWORK);
             manager.openGps();
             tMapView.setTrackingMode(true);
+            tMapView.setCompassMode(true);
         } else {
             tMapView.setTrackingMode(false);
+            tMapView.setCompassMode(false);
             manager.setOnLocationChangeListener(null);
         }
     }
+    private long lastAlertTime = 0;
+
     private final TMapGpsManager.OnLocationChangedListener locationListener = new TMapGpsManager.OnLocationChangedListener() {
         @Override
         public void onLocationChange(Location location) {
             if (location != null) {
                 tMapView.setLocationPoint(location.getLatitude(), location.getLongitude());
+                long currentTime = System.currentTimeMillis();
+                // 현재 시간과 마지막 알림 시간의 차이를 계산합니다.
+                if (currentTime - lastAlertTime >= 60000) { // 60000 밀리초 = 1분
+                    Alert(location);
+                    lastAlertTime = currentTime; // 마지막 알림 시간을 현재 시간으로 갱신합니다.
+                }
+                nowposition = new TMapPoint(location.getLatitude(), location.getLongitude());
                 OnMove();
                 // 위치 정보를 사용할 수 있습니다. 여기서는 토스트 메시지로 출력합니다.
             }
@@ -1084,13 +1198,14 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                     tMapView.removeAllTMapMarkerItem();
                     showAll();
                     NewDisplayPathDetails(pathDocument);
-                    centerPositon();
+                    setTrackingMode(true);
+                    locationImage.setSelected(true);
                     addMarker2(endPoint, "도착지", "(도착)" + endname, endAddress);
                     routeInfo.setVisibility(View.GONE);
                     routeDescriptionLayout.setVisibility(View.VISIBLE);
-
                 }
                 dialog.dismiss();
+                navFlag = true;
             }
         });
 
@@ -1099,6 +1214,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             public void onClick(View v) {
                 dialog.dismiss();
                 openSafeReturnDialog();
+                navFlag = true;
             }
         });
 
@@ -1110,6 +1226,7 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         View dialogView = inflater.inflate(R.layout.dialog_safe_return, null);
 
         final EditText phoneNumberInput = dialogView.findViewById(R.id.phone_number_input);
+        final EditText nameInput = dialogView.findViewById(R.id.name_input);
         final Button startServiceButton = dialogView.findViewById(R.id.start_service_button);
 
         final AlertDialog dialog = new AlertDialog.Builder(this)
@@ -1121,20 +1238,33 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             @Override
             public void onClick(View v) {
                 String phoneNumber = phoneNumberInput.getText().toString();
-
+                String name = nameInput.getText().toString();
                 if (!phoneNumber.isEmpty()) {
+
+                    if (ContextCompat.checkSelfPermission(WalkingRouteActivity.this, Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED) {
+                        // 권한이 없으면 권한 요청
+                        ActivityCompat.requestPermissions(WalkingRouteActivity.this, new String[]{Manifest.permission.SEND_SMS}, MY_PERMISSIONS_REQUEST_SEND_SMS);
+                    } else {
+                        // 권한이 있으면 서비스 시작
+                        Intent intent = new Intent(WalkingRouteActivity.this, SafeReturnService.class);
+                        intent.putExtra("estimatedTimeInMinutes", timetotal);
+                        intent.putExtra("phoneNumber", phoneNumber);
+                        intent.putExtra("name", name);
+                        intent.putExtra("start", nowAddress);
+                        intent.putExtra("end", endname);
+                        startService(intent);
+                        Log.d("서비스눌림", "w " + phoneNumber);
+                    }
                     Log.d("SafeReturnDialog", "w " + phoneNumber);
 
-                    Intent intent = new Intent(WalkingRouteActivity.this, SafeReturnService.class);
-                    intent.putExtra("estimatedTimeInMinutes", timetotal);
-                    intent.putExtra("phoneNumber", phoneNumber);
-                    startService(intent);
-                    Log.d("TAG", "안심귀가 눌름: " + timetotal + phoneNumber);
+                    Log.d("TAG", "안심귀가 눌름: " + timetotal +  " 번호 : " + phoneNumber);
                     dialog.dismiss();
                     if (pathDocument != null) {
                         tMapView.removeAllTMapMarkerItem();
                         showAll();
-                        displayPathDetails(pathDocument);
+                        setTrackingMode(true);
+                        locationImage.setSelected(true);
+                        NewDisplayPathDetails(pathDocument);
                         //centerPositon();
                         addMarker2(endPoint, "도착지", "(도착)" + endname, endAddress);
                         routeInfo.setVisibility(View.GONE);
@@ -1174,11 +1304,11 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                 double km = Double.parseDouble(totalDistance) / 1000;
                 double roundedKm = Math.round(km * 10.0) / 10.0;
                 routedescriptionTextView.setText(getContentFromNode((Element) placemarkList.item(0), "description")
-                                + "\n"
+                        + "\n"
                         + "남은 거리 :" + roundedKm + "km"
-                                + "\n"
+                        + "\n"
                         + "남은 시간" + t
-                        );
+                );
             }
         });
     }
@@ -1202,14 +1332,20 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
         // 마지막 실행 시간 업데이트
         lastPathUpdateTime = currentTime;
 
-        setNowposition();
         NewfindPathAllType(TMapData.TMapPathType.PEDESTRIAN_PATH, new TMapData.OnFindPathDataAllTypeListener() {
             @Override
             public void onFindPathDataAllType(Document doc) {
                 Log.d("NewfindPathAllType", "onFindPathDataAllType called");
                 if (doc != null) {
+                    //---추가부
+                    tMapView.removeAllTMapMarkerItem();
+                    showAll();
+                    //centerPositon();
                     NewDisplayPathDetails(doc);
+                    addMarker2(endPoint, "도착지", "(도착)" + endname, endAddress);
+                    //---추가부
                     hideKeyboard();
+                    //centerPositon();
                 } else {
                     Log.d("NewfindPathAllType", "Document is null");
                 }
@@ -1223,12 +1359,15 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
             runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "StartPoint or EndPoint is null", Toast.LENGTH_LONG).show());
             return;
         }
-        runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "Markers :" + tMapView.getAllMarkerItem2().toString() , Toast.LENGTH_LONG).show());
         TMapData data = new TMapData();
         data.findPathDataAllType(type, nowposition, endPoint, new TMapData.OnFindPathDataAllTypeListener() {
             @Override
             public void onFindPathDataAllType(Document doc) {
                 runOnUiThread(() -> {
+                    Location location = new Location("");
+                    location.setLatitude(nowposition.getLatitude());
+                    location.setLongitude(nowposition.getLongitude());
+                    Alert(location);
                     if (tMapView != null) {
                         tMapView.removeTMapPath(); // 기존 경로 제거
                         tMapView.removeAllTMapPolyLine();
@@ -1288,19 +1427,122 @@ public class WalkingRouteActivity<ReverseGeocoding> extends AppCompatActivity im
                                 // 새로 추가된 부분: 외부에서 전달된 리스너를 호출하여 처리 결과를 전달
                                 listener.onFindPathDataAllType(doc);
                             } else {
-
-                                runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "LineString node list is empty or null", Toast.LENGTH_LONG).show());
                             }
                         } else {
-                            runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "Document node list is empty or null", Toast.LENGTH_LONG).show());
                         }
                     } else {
-                        runOnUiThread(() -> Toast.makeText(WalkingRouteActivity.this, "Document is null", Toast.LENGTH_LONG).show());
                     }
                 });
             }
         });
     }
+    private void getPOIDetail(TMapPOIItem poi) {
+        // POI 상세 정보 요청
+        String poiInfo = poi.id; // POI ID를 사용하여 상세 정보 요청
+        Log.d("TAG", "POIID: " + poi.id);
+        String version = "1";
+        String resCoordType = "WGS84GEO"; // 응답 좌표 타입 설정 (예시: WGS84GEO)
+        String callback = ""; // 콜백 값 설정 (필요시)
+        String appKey = "pRNUlsEpce4d3mB0MUabnMDhHbLmdtlPrUYZI3i0"; // 사용자의 APP_KEY 입력
+
+        String requestUrl = "https://apis.openapi.sk.com/tmap/pois/" + poiInfo + "?version=" + version + "&resCoordType=" + resCoordType + "&callback=" + callback + "&appKey=" + appKey;
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject jsonObject = getPOIDetailInfo(requestUrl);
+                    Log.d("TAG", "제이슨 가져옴.: ");
+                    if (jsonObject != null) {
+                        parsePOIDetail(jsonObject); // 수정된 부분
+                    }
+                } catch (Exception e) {
+                    Log.d("TAG", "제이슨 못가져옴.: ");
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+    }
+
+    private JSONObject getPOIDetailInfo(String requestUrl) throws IOException, JSONException {
+        URL url = new URL(requestUrl);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod("GET");
+
+        // 응답 처리
+        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+        StringBuilder response = new StringBuilder();
+        String inputLine;
+        while ((inputLine = in.readLine()) != null) {
+            response.append(inputLine);
+        }
+        in.close();
+        Log.d("TAG", "응답 가져옴.: ");
+        // 응답 결과를 처리하여 JSON 객체로 반환
+        return new JSONObject(response.toString());
+
+    }
+    private String viewId;
+    private String id;
+    private String dbKind;
+    private String pkey;
+    private String navSeq;
+    private String name;
+    private String bizCatName;
+    private String newAddress;
+    private String na1;
+    private String tel;
+    private double latitude;
+    private double longitude;
+    private String homepage;
+    private void parsePOIDetail(JSONObject jsonObject) {
+        try {
+            JSONObject poiDetailInfo = jsonObject.getJSONObject("poiDetailInfo");
+            if (poiDetailInfo != null) {
+                viewId = poiDetailInfo.optString("viewId", "");
+                id = poiDetailInfo.optString("id", "");
+                dbKind = poiDetailInfo.optString("dbKind", "");
+                pkey = poiDetailInfo.optString("pkey", "");
+                navSeq = poiDetailInfo.optString("navSeq", "");
+                name = poiDetailInfo.optString("name", "");
+                bizCatName = poiDetailInfo.optString("bizCatName", "");
+                newAddress = poiDetailInfo.optString("bldAddr", "");
+                na1 = poiDetailInfo.optString("bldNo1", "");
+                tel = poiDetailInfo.optString("tel", "");
+                latitude = poiDetailInfo.optDouble("lat", 0.0); // 위도 정보 가져오기
+                longitude = poiDetailInfo.optDouble("lon", 0.0); // 경도 정보 가져오기
+                homepage = poiDetailInfo.optString("homepageURL", "");
+
+                TMapPoint tMapPoint = new TMapPoint(latitude,longitude);
+
+                // 추출한 정보를 사용하거나 표시하는 등의 작업을 수행할 수 있습니다.
+                // 예: Log로 출력
+                Log.d("POI Detail", "View ID: " + viewId);
+                Log.d("POI Detail", "ID: " + id);
+                Log.d("POI Detail", "DB Kind: " + dbKind);
+                Log.d("POI Detail", "PKey: " + pkey);
+                Log.d("POI Detail", "Nav Seq: " + navSeq);
+                Log.d("POI Detail", "Name: " + name);
+                Log.d("POI Detail", "Business Category Name: " + bizCatName);
+
+                TMapMarkerItem marker = new TMapMarkerItem();
+                marker.setId(id);
+                Bitmap icon = BitmapFactory.decodeResource(getResources(), R.drawable.poi_dot);
+                Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.ic_searchlist);
+                marker.setIcon(icon);
+                marker.setCanShowCallout(true);
+                marker.setCalloutTitle(name);
+                marker.setCalloutSubTitle(newAddress + na1);
+                marker.setTMapPoint(latitude,longitude);
+                marker.setCalloutRightButtonImage(bitmap);
+                tMapView.addTMapMarkerItem(marker);
+                tMapView.setCenterPoint(latitude,longitude);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
 }
